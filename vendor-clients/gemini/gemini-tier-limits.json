@@ -1,0 +1,48 @@
+{
+  "_comment": "Free-tier rate limits per model, keyed by the REAL API model identifier (as returned by the v1beta models endpoint). Human-editable reference data -- the SDK/API has NO endpoint to query these, so they are read from the AI Studio dashboard (https://aistudio.google.com/rate-limit) and recorded here. Google changes free-tier limits server-side without notice; update this file when the dashboard shows different, or when a 429 reconciles the truth. Limits are per-Google-Cloud-PROJECT, not per-key. rpm=requests/min, tpm=tokens/min (input), rpd=requests/day; null=unlimited or unknown. Only rpd is enforced by the budget sidecar in v1; rpm/tpm are recorded for reference.",
+  "_thinking_comment": "thinking: per-model reasoning control for the generateContent API. kind=level (named thinkingLevel string, Gemini-3 family) | budget (integer thinkingBudget, Gemini-2.5 family -- none curated yet) | none (no thinking control -- Gemma rejects both params). available=accepted levels (API-PROBED 2026-06-03 against :generateContent). default=OUR chosen default sent when a caller specifies no level (our policy, may differ from the model's own default). model_default=Google's own server default (from https://ai.google.dev/gemini-api/docs/thinking#levels-budgets, 2026-06-03) -- recorded as provenance to show where we deliberately diverge (e.g. flash-lite: we send medium, Google defaults minimal). Gemma 'none' verified by direct generateContent probe rejecting both thinkingLevel and thinkingBudget.",
+  "_source": "AI Studio dashboard, read manually 2026-06-02; thinking data API-probed + doc-sourced 2026-06-03",
+  "tier": "free",
+  "models": {
+    "gemini-3.5-flash": {
+      "display": "Gemini 3.5 Flash",
+      "rpm": 5,
+      "tpm": 250000,
+      "rpd": 20,
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536,
+      "thinking": { "kind": "level", "default": "medium", "model_default": "medium", "available": ["minimal", "low", "medium", "high"] },
+      "verified": "2026-06-02"
+    },
+    "gemini-3.1-flash-lite": {
+      "display": "Gemini 3.1 Flash Lite",
+      "rpm": 15,
+      "tpm": 250000,
+      "rpd": 500,
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536,
+      "thinking": { "kind": "level", "default": "medium", "model_default": "minimal", "available": ["minimal", "low", "medium", "high"] },
+      "verified": "2026-06-02"
+    },
+    "gemma-4-26b-a4b-it": {
+      "display": "Gemma 4 26B A4B IT",
+      "rpm": 15,
+      "tpm": null,
+      "rpd": 1500,
+      "input_token_limit": 262144,
+      "output_token_limit": 32768,
+      "thinking": { "kind": "none", "default": "", "available": [] },
+      "verified": "2026-06-02"
+    },
+    "gemma-4-31b-it": {
+      "display": "Gemma 4 31B IT",
+      "rpm": 15,
+      "tpm": null,
+      "rpd": 1500,
+      "input_token_limit": 262144,
+      "output_token_limit": 32768,
+      "thinking": { "kind": "none", "default": "", "available": [] },
+      "verified": "2026-06-02"
+    }
+  }
+}

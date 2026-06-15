@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "verdict": { "type": "string", "enum": ["approve", "concerns", "block"] },
+    "mode": { "type": "string", "enum": ["plan", "code", "test-spec"] },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "severity": { "type": "string", "enum": ["critical", "warning", "info"] },
+          "ref": { "type": ["string", "null"], "description": "Where in the subject (a line, file, criterion, test ID, or spec clause), or null." },
+          "issue": { "type": "string" },
+          "evidence": { "type": "string" }
+        },
+        "required": ["severity", "issue", "evidence"]
+      }
+    },
+    "strengths": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["verdict", "mode", "findings"]
+}

@@ -1,0 +1,9 @@
+{
+  "comment": "Component-wide typecheck config: covers core/, gemini/, and the dispatcher + its test. Extends tsconfig.base.json for the shared strictness settings. Third-party type packages (@types/bun, @google/genai) are installed under gemini/node_modules (the only dir with package.json / SDK deps), so typeRoots points there. PRECONDITION: run `bun install` in gemini/ first, and run `bunx tsc --noEmit` from THIS dir (vendor-clients/). The gemini/ dir also has its own tsconfig for typechecking that vendor in isolation.",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "typeRoots": ["./gemini/node_modules/@types"]
+  },
+  "include": ["core/**/*.ts", "gemini/**/*.ts", "dispatch.ts", "dispatch.test.ts"],
+  "exclude": ["**/node_modules"]
+}

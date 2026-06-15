@@ -1,0 +1,19 @@
+{
+  "comment": "Shared compiler options for the vendor-clients component. Both the component-wide tsconfig.json and gemini/tsconfig.json extend this so the strictness settings never drift. Does not set include/typeRoots -- each extending config adds those for its own scope.",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "types": ["bun"]
+  }
+}

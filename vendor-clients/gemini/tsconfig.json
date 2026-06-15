@@ -1,0 +1,4 @@
+{
+  "comment": "Isolated typecheck for the gemini vendor. Extends the shared base one level up so strictness never drifts from the component config. Run `bunx tsc --noEmit` from this dir after `bun install`.",
+  "extends": "../tsconfig.base.json"
+}

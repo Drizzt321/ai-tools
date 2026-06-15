@@ -1,0 +1,28 @@
+node_modules/
+*.log
+.DS_Store
+
+# Gemini per-model RPD budget counters. These default to living next to
+# GeminiBudget.ts (the vendor dir) and are mutable runtime state, not source.
+# Set VENDOR_CLIENTS_GEMINI_STATE to relocate them outside the tree if preferred.
+gemini-budget-*.json
+gemini-budget-*.sync-conflict-*
+
+# Transient mutual-exclusion lock sentinels created by proper-lockfile around budget
+# writes (it makes a `<file>.lock` dir while the lock is held, removed on release).
+# NOTE: we deliberately do NOT use a blanket `*.lock` here -- bun overloads the `.lock`
+# extension for its COMMITTED package lockfile (`bun.lock`), unlike the *nix convention
+# where `.lock` means a transient sentinel. A broad `*.lock` would wrongly ignore bun.lock.
+*.json.lock
+!bun.lock
+
+# Provider call trail (runtime logs; defaults under vendor-clients/provider-calls/).
+provider-calls/
+
+# Credentials: never commit a .env, at any depth. Keep a committed template only.
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
