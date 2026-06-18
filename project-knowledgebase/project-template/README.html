@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Knowledge Base Template</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #666;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --border: #e5e7eb;
+    --code-bg: #f3f4f6;
+    --card-bg: #fff;
+    --step-bg: #eff6ff;
+    --tier1: #059669;
+    --tier1-bg: #ecfdf5;
+    --tier2: #d97706;
+    --tier2-bg: #fffbeb;
+    --tier3: #7c3aed;
+    --tier3-bg: #f5f3ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111;
+      --fg: #e5e5e5;
+      --muted: #999;
+      --accent: #60a5fa;
+      --accent-light: #1e3a5f;
+      --border: #333;
+      --code-bg: #1e1e1e;
+      --card-bg: #1a1a1a;
+      --step-bg: #172033;
+      --tier1: #34d399;
+      --tier1-bg: #0d2818;
+      --tier2: #fbbf24;
+      --tier2-bg: #2d1f04;
+      --tier3: #a78bfa;
+      --tier3-bg: #1e1533;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.7;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+  }
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--border);
+  }
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 1.8rem;
+    margin-bottom: 0.6rem;
+  }
+  p { margin-bottom: 1rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  ul, ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+  li { margin-bottom: 0.4rem; }
+
+  code {
+    font-family: "SF Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+    font-size: 0.88em;
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    margin-bottom: 1.25rem;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .step-card {
+    background: var(--step-bg);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .step-card h3 {
+    margin-top: 0;
+    color: var(--accent);
+    font-size: 1.15rem;
+  }
+  .step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .agent-option {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .agent-option strong { color: var(--accent); }
+
+  .tier-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    vertical-align: middle;
+    margin-left: 0.4rem;
+  }
+  .tier-1 { background: var(--tier1-bg); color: var(--tier1); }
+  .tier-2 { background: var(--tier2-bg); color: var(--tier2); }
+  .tier-topic { background: var(--tier3-bg); color: var(--tier3); }
+
+  .dir-tree {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    font-family: "SF Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+    font-size: 0.88rem;
+    line-height: 1.8;
+  }
+  .dir-tree .label {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .file-role {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .file-role h3 {
+    margin-top: 0;
+    font-family: "SF Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+    font-size: 1rem;
+  }
+  .file-role p:last-child { margin-bottom: 0; }
+
+  .principle {
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--accent);
+  }
+  .principle strong { display: block; margin-bottom: 0.25rem; }
+
+  .callout {
+    background: var(--tier1-bg);
+    border-left: 4px solid var(--tier1);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  hr {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 2.5rem 0;
+  }
+
+  .copy-hint {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: -0.75rem;
+    margin-bottom: 1.25rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>Project Knowledge Base Template</h1>
+<p class="subtitle">A structured directory template for maintaining durable project knowledge that AI agents (and humans) can navigate efficiently. Works with Claude Code, claude.ai, Claude Desktop, and any agent that reads files.</p>
+
+<h2>The Problem This Solves</h2>
+<p>AI agents lose context between conversations. Every new session starts cold. Project knowledge scattered across chat logs, docs, and memory is expensive to re-discover and easy to get wrong.</p>
+<p>This template gives each project a small, predictable set of files that an agent can load selectively based on what kind of work is happening &mdash; without dumping everything into context at once.</p>
+
+<h2>Setup</h2>
+
+<div class="step-card">
+  <h3><span class="step-number">1</span> Place the Template</h3>
+  <p>Put this <code>project-template</code> directory inside the parent directory where you want your project knowledge bases to live. For example:</p>
+  <pre><code>C:\Users\you\Documents\KnowledgeBases\project-template\     (Windows)
+/home/you/KnowledgeBases/project-template/                   (Linux)
+~/KnowledgeBases/project-template/                           (macOS)</code></pre>
+  <p>The template stays here as a reference. When you (or your agent) start a new project, the agent copies the template directory, renames it, and fills in the files from your conversation.</p>
+</div>
+
+<div class="step-card">
+  <h3><span class="step-number">2</span> Configure Your Agent</h3>
+  <p>Your agent needs to know where your knowledge base directories live and how to use them. Add the following to your agent's persistent instructions, replacing <code>&lt;YOUR_KB_PATH&gt;</code> with your actual path:</p>
+  <pre><code>Project knowledge bases are stored at &lt;YOUR_KB_PATH&gt;.
+Each subdirectory is a project KB. The `project-template` directory
+contains the blank template &mdash; copy it to create a new project KB.
+To understand any project, start with its DOCUMENT-MAP.md &mdash; it indexes
+all files and describes when to load each one.</code></pre>
+  <p class="copy-hint">Copy this text block and paste it into your agent's instructions.</p>
+
+  <p>For example, a Windows user with knowledge bases in their Documents folder would use:</p>
+  <pre><code>Project knowledge bases are stored at C:\Users\jane\Documents\KnowledgeBases.
+Each subdirectory is a project KB. The `project-template` directory
+contains the blank template &mdash; copy it to create a new project KB.
+To understand any project, start with its DOCUMENT-MAP.md &mdash; it indexes
+all files and describes when to load each one.</code></pre>
+
+  <h3>Where to add this, by platform:</h3>
+
+  <div class="agent-option">
+    <strong>claude.ai / Claude Desktop / Claude Mobile</strong><br>
+    Add it to your <strong>Profile Instructions</strong>: click your initials &rarr; Settings &rarr; "Instructions for Claude." This applies to all conversations. Alternatively, add it to a specific Project's instructions if you only want it scoped to one project.<br>
+    <small>See: <a href="https://support.claude.com/en/articles/10185728-understanding-claude-s-personalization-features">Personalization guide</a> &middot; <a href="https://support.claude.com/en/articles/9519177-how-can-i-create-and-manage-projects">Projects guide</a></small>
+  </div>
+
+  <div class="agent-option">
+    <strong>Claude Code</strong><br>
+    Add it to your <code>~/.claude/CLAUDE.md</code> file (user-level instructions, loaded every session).<br>
+    <small>See: <a href="https://docs.anthropic.com/en/docs/claude-code/memory">CLAUDE.md documentation</a></small>
+  </div>
+
+  <div class="agent-option">
+    <strong>Other agents</strong><br>
+    Consult your agent's documentation for how to add persistent system-level instructions.
+  </div>
+
+  <div class="callout">That's it. Your agent can discover the template, copy it for new projects, and fill in the files based on your conversations.</div>
+</div>
+
+<div class="step-card" style="border-color: var(--tier3); background: var(--tier3-bg);">
+  <h3 style="color: var(--tier3);">Bonus: Use KB Directories as Claude Projects</h3>
+  <p>Each project KB directory can also serve as a <strong>Claude Project</strong> &mdash; either as a chat project on claude.ai/Claude Desktop, or as a Cowork project. Since each directory is a self-contained workspace with its own files and context, it maps naturally to Claude's project model:</p>
+
+  <div class="agent-option">
+    <strong>Chat Projects (claude.ai / Claude Desktop)</strong><br>
+    Create a project and upload the KB directory's files to the project knowledge base, or add <code>00-project-brief.md</code> as project instructions.<br>
+    <small>See: <a href="https://support.claude.com/en/articles/9519177-how-can-i-create-and-manage-projects">Projects guide</a></small>
+  </div>
+
+  <div class="agent-option">
+    <strong>Cowork Projects (Claude Desktop)</strong><br>
+    Cowork can create projects directly from local folders on your computer. Point it at a KB directory and it becomes a Cowork project with its own instructions, context, and memory.<br>
+    <small>See: <a href="https://support.claude.com/en/articles/14116274-organize-your-tasks-with-projects-in-claude-cowork">Organize tasks with projects in Cowork</a> &middot; <a href="https://support.claude.com/en/articles/13345190-get-started-with-claude-cowork">Getting started with Cowork</a></small>
+  </div>
+</div>
+
+<hr>
+
+<h2>How It Works: Tiered Loading</h2>
+<p>Context windows are finite. The template is organized around a loading strategy so agents only read what's relevant:</p>
+
+<ul>
+  <li><strong>Tier 1 <span class="tier-badge tier-1">Always Load</span></strong> &mdash; <code>00-project-brief.md</code> &mdash; enough to orient any conversation in under 500 words.</li>
+  <li><strong>Tier 2 <span class="tier-badge tier-2">Working Sessions</span></strong> &mdash; <code>02-status.md</code>, <code>03-decisions.md</code>, <code>04-backlog.md</code> &mdash; progressively deeper context pulled in when relevant.</li>
+  <li><strong>Topic-specific <span class="tier-badge tier-topic">On Demand</span></strong> &mdash; <code>plans/</code>, <code>reference/</code> &mdash; detailed docs pulled in only when working on that specific area.</li>
+</ul>
+
+<p>An agent starting a new conversation reads the brief. If the conversation turns to active implementation, it pulls in status and decisions. If it needs the specifics of a particular subsystem, it reads the relevant plan or reference doc. The <code>DOCUMENT-MAP.md</code> file tells it what exists and when to load each document.</p>
+<p>This means a quick question costs ~500 tokens of context. A deep implementation session might load 3&ndash;5 documents. Nothing loads everything.</p>
+
+<h2>Directory Structure</h2>
+
+<div class="dir-tree">
+  your-project/<br>
+  &nbsp;&nbsp;00-project-brief.md &nbsp;&nbsp;&nbsp;<span class="label">&mdash; Vision, goals, architecture, current phase (Tier 1)</span><br>
+  &nbsp;&nbsp;02-status.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Phase status, tasks, what's next (Tier 2A)</span><br>
+  &nbsp;&nbsp;03-decisions.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Key decisions with rationale (Tier 2B)</span><br>
+  &nbsp;&nbsp;04-backlog.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Ideas, links, future exploration (Tier 2C)</span><br>
+  &nbsp;&nbsp;DOCUMENT-MAP.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; File index and loading guide</span><br>
+  &nbsp;&nbsp;plans/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Actionable execution plans (per-topic)</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;archive/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Completed/deprecated plans</span><br>
+  &nbsp;&nbsp;reference/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Research, landscape analyses, technical reference</span><br>
+  &nbsp;&nbsp;output/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Finished or near-finished deliverables</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;documents/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Reports, memos, proposals, written deliverables</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;diagrams/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Flowcharts, org charts, architecture visuals</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;images/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Generated images, screenshots, visual assets</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;data/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Spreadsheets, CSVs, analysis results, exports</span><br>
+  &nbsp;&nbsp;ongoing/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Operational runbooks, living process docs</span><br>
+  &nbsp;&nbsp;journal/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Historical archives, session logs</span><br>
+  &nbsp;&nbsp;scratch/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Working artifacts that haven't graduated yet</span>
+</div>
+
+<h2>File Roles</h2>
+
+<div class="file-role">
+  <h3>00-project-brief.md <span class="tier-badge tier-1">Tier 1</span></h3>
+  <p>The single document an agent reads to understand your project. Contains:</p>
+  <ul>
+    <li>What the project is and why it exists (vision)</li>
+    <li>Concrete goals</li>
+    <li>High-level architecture or approach</li>
+    <li>Current phase / immediate focus</li>
+    <li>Top decisions that shape everything</li>
+  </ul>
+  <p>Keep this concise &mdash; under 500 words is ideal. It should orient a cold-start conversation, not explain every detail.</p>
+</div>
+
+<div class="file-role">
+  <h3>02-status.md <span class="tier-badge tier-2">Tier 2A</span></h3>
+  <p>Where you are and what's next. Phase overview table, per-phase task lists, cross-cutting TODOs. Pull this in for any conversation involving active work.</p>
+  <p>Update this file as phases progress. When a phase completes, move the detailed history to <code>journal/</code> and keep only the summary here.</p>
+</div>
+
+<div class="file-role">
+  <h3>03-decisions.md <span class="tier-badge tier-2">Tier 2B</span></h3>
+  <p>Currently relevant decisions with enough rationale to be useful during implementation. Each entry captures what was decided, why, and what alternatives were considered.</p>
+  <p>Decisions age out. When a decision is no longer load-bearing (the thing it decided is done and stable), archive it or remove it. This file should reflect the active decision landscape, not a complete history.</p>
+</div>
+
+<div class="file-role">
+  <h3>04-backlog.md <span class="tier-badge tier-2">Tier 2C</span></h3>
+  <p>Low-friction landing zone for ideas, links, tools to evaluate, integration concepts, and half-formed thoughts. Pull this in during planning sessions, not during implementation. Things here are not commitments &mdash; they're possibilities.</p>
+</div>
+
+<div class="file-role">
+  <h3>DOCUMENT-MAP.md</h3>
+  <p>Central index of every file in the project. For each file: what it is, when to load it. This is what an agent reads to decide which documents are relevant to the current conversation.</p>
+  <p>Update this whenever you add or rename a file. It's the table of contents for the whole knowledge base.</p>
+</div>
+
+<div class="file-role">
+  <h3>plans/</h3>
+  <p>Actionable documents: implementation plans, design specs, feature breakdowns. Each plan is a self-contained document for a specific topic. An agent loads the plan relevant to the current work, not all plans.</p>
+  <p>Plans that are completed or superseded move to <code>plans/archive/</code>.</p>
+</div>
+
+<div class="file-role">
+  <h3>reference/</h3>
+  <p>Research findings, landscape analyses, technical reference material, API documentation summaries. Things you'd look up when you're "in the weeds" on a specific topic.</p>
+</div>
+
+<div class="file-role">
+  <h3>ongoing/</h3>
+  <p>Operational runbooks and living process documents &mdash; things that describe how to do recurring operations, not one-time plans.</p>
+</div>
+
+<div class="file-role">
+  <h3>journal/</h3>
+  <p>Historical archives. When status updates, decision logs, or phase details get long, rotate the old content here. Useful for understanding how the project evolved, but rarely loaded.</p>
+</div>
+
+<div class="file-role">
+  <h3>output/</h3>
+  <p>Finished or near-finished deliverables &mdash; things the agent produced that you'll use, share, or submit. Organized into subdirectories by type:</p>
+  <ul>
+    <li><strong>documents/</strong> &mdash; Reports, memos, proposals, analyses, written deliverables. Project-specific outputs like reviews or reports can go here or in their own subdirectory under <code>output/</code> &mdash; whatever feels natural.</li>
+    <li><strong>diagrams/</strong> &mdash; Flowcharts, org charts, architecture visuals, process maps.</li>
+    <li><strong>images/</strong> &mdash; Generated images, screenshots, visual assets.</li>
+    <li><strong>data/</strong> &mdash; Spreadsheets, CSVs, analysis results, data exports.</li>
+  </ul>
+  <p>The subdirectories are suggestions &mdash; use what fits your project, ignore what doesn't, add new ones if needed.</p>
+</div>
+
+<div class="file-role">
+  <h3>scratch/</h3>
+  <p>Working artifacts: drafts, explorations, calculations, intermediate outputs. When something in scratch matures, graduate it to <code>plans/</code>, <code>reference/</code>, or <code>output/</code>. When it's no longer useful, delete it.</p>
+</div>
+
+<h2>How Agents Should Use This</h2>
+<p>If you're an AI agent reading this, here's the protocol:</p>
+
+<h3>Creating a New Project KB</h3>
+<p>When the user starts a new project or you determine one is needed:</p>
+<ol>
+  <li>Create a sibling directory named after the project, and copy in <strong>only the project files</strong>: <code>00-project-brief.md</code>, <code>02-status.md</code>, <code>03-decisions.md</code>, <code>04-backlog.md</code>, <code>DOCUMENT-MAP.md</code>, plus the <code>plans/</code> and <code>reference/</code> directories.</li>
+  <li><strong>Do NOT copy <code>README.md</code>, <code>README.html</code>, or <code>project-template.zip</code> into the new project</strong> — those document the template <em>itself</em>, not any project. A project's <code>00-project-brief.md</code> is its README (the single orient-me document), and <code>DOCUMENT-MAP.md</code> is its canonical entry point. (A project may add its own <code>README.md</code> later if it has a real need &mdash; e.g. it gets published to a git remote &mdash; but it is never copied from the template.)</li>
+  <li>Fill in <code>00-project-brief.md</code> based on what you know from the conversation.</li>
+  <li>Update <code>DOCUMENT-MAP.md</code> with the project name in the directory tree.</li>
+  <li>The remaining files can stay as templates until content is needed.</li>
+</ol>
+
+<h3>Loading an Existing Project KB</h3>
+<ol>
+  <li><strong>Start with <code>DOCUMENT-MAP.md</code></strong> to understand what files exist and when to load them.</li>
+  <li><strong>Always read <code>00-project-brief.md</code></strong> at the start of any conversation about this project.</li>
+  <li><strong>Load Tier 2 files based on the task:</strong>
+    <ul>
+      <li>Doing active work? Load <code>02-status.md</code>.</li>
+      <li>Making implementation decisions? Load <code>03-decisions.md</code>.</li>
+      <li>Planning or brainstorming? Load <code>04-backlog.md</code>.</li>
+    </ul>
+  </li>
+  <li><strong>Load plans/reference on demand</strong> &mdash; only when the conversation is specifically about that topic.</li>
+  <li><strong>Don't load everything.</strong> The whole point is selective loading. If you're answering a quick question, the brief is probably enough.</li>
+</ol>
+
+<h3>Writing Back</h3>
+<p>When you produce knowledge worth keeping:</p>
+<ul>
+  <li>Implementation plans go in <code>plans/</code>.</li>
+  <li>Research findings go in <code>reference/</code>.</li>
+  <li>Finished deliverables go in <code>output/</code> (documents, diagrams, images, data as appropriate).</li>
+  <li>Decisions go in <code>03-decisions.md</code> (brief entry) with detailed analysis linked from <code>plans/</code> or <code>reference/</code>.</li>
+  <li>Update <code>DOCUMENT-MAP.md</code> when adding new files.</li>
+  <li>Update <code>02-status.md</code> when phase status changes.</li>
+  <li>Use <code>scratch/</code> for intermediate work that might graduate later.</li>
+</ul>
+
+<h2>Design Principles</h2>
+
+<div class="principle">
+  <strong>Files are the source of truth.</strong>
+  Not chat logs, not memory systems, not databases. Files on disk that any tool can read.
+</div>
+
+<div class="principle">
+  <strong>Predict where things go.</strong>
+  Anyone (human or agent) should be able to guess where a piece of information lives without consulting an index. Plans are in <code>plans/</code>. Decisions are in <code>03-decisions.md</code>. Reference material is in <code>reference/</code>.
+</div>
+
+<div class="principle">
+  <strong>Concise over comprehensive.</strong>
+  Every file should be as short as it can be while remaining useful. If a document is getting long, split it or archive the old parts.
+</div>
+
+<div class="principle">
+  <strong>Evolve, don't ossify.</strong>
+  The structure serves the project, not the other way around. Add directories if your project needs them. Remove files that aren't pulling their weight. The template is a starting point.
+</div>
+
+<h2>Optional Extensions</h2>
+<p>Some projects benefit from additional files not in the base template:</p>
+<ul>
+  <li><strong>CLAUDE.md</strong> or <strong>AGENT-CONTEXT.md</strong> &mdash; Agent-specific bootstrap instructions or project-relevant personal context. Useful when the project has specific agent behaviors or constraints.</li>
+  <li><strong>PROJECT-INSTRUCTIONS.md</strong> &mdash; If using Claude Projects (the web UI), this can hold the canonical copy of custom instructions that get pasted into the UI.</li>
+  <li><strong>thoughts/</strong> &mdash; Longer-form thinking documents, explorations that aren't plans yet.</li>
+</ul>
+
+</body>
+</html>
