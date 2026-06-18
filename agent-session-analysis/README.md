@@ -45,7 +45,11 @@ INDICATIVE judgement layer on top.
 
 - **Transcripts:** `~/.claude/projects/<encoded-cwd>/<uuid>.jsonl` (point `--scan` at the `projects`
   dir; selection is by file mtime within the window). See RUNBOOK "Where the files live".
-- **`--kb-root`** sets what counts as knowledge-base usage (default `~/ClaudeDesktop`).
+- **`--kb-root`** sets what counts as knowledge-base usage (default `~/ClaudeDesktop`). It's the
+  parent directory holding your individual project knowledge bases -- one subdirectory per project,
+  each based on the [`project-knowledgebase`](../project-knowledgebase/) template (sibling component
+  in this repo). The artifact-class ruleset keys on that template's structure, so classification is
+  most accurate when the project dirs under `--kb-root` follow it.
 - **`--home-prefix`** is the encoded home fragment stripped from project labels; defaults to one
   derived from `$HOME`, so you normally never set it.
 

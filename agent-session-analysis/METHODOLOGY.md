@@ -288,6 +288,14 @@ are available, so we can see what a KB Read actually returned and time the surro
 `KB_ROOT` is a configurable input: **where the knowledge-base projects live** (default
 `~/ClaudeDesktop`). It is the single definition of "is this KB usage":
 
+> **What "KB" means here.** `KB_ROOT` is the **parent directory** that holds all your individual
+> project knowledge bases -- one subdirectory per project, each based on the `project-knowledgebase`
+> template (the sibling component in this repo). The artifact-class ruleset below keys on that
+> template's structure (`00-project-brief.md`, `02-status.md`, `03-decisions.md`, `04-backlog.md`,
+> `DOCUMENT-MAP.md`, `plans/`, `reference/`, `scratch/`, ...), so classification is most accurate
+> when the project dirs under `KB_ROOT` follow that layout. Project dirs that don't are still counted
+> as KB interaction; their files just fall through to the `other` class.
+
 - A tool call is **KB interaction** ONLY if its target path is UNDER `KB_ROOT`. This applies to BOTH
   the MEASURED interaction counts (kb_read_count / kb_write_count) AND the INDICATIVE classification
   below -- "KB" means ONE thing throughout: files under `KB_ROOT`.
