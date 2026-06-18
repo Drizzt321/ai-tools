@@ -19,6 +19,14 @@ gemini-budget-*.sync-conflict-*
 # Provider call trail (runtime logs; defaults under vendor-clients/provider-calls/).
 provider-calls/
 
+# agent-session-analysis run output: local-only. Transcripts carry real repo names, session IDs,
+# and prompt excerpts -- the methodology + tools are shareable, the run data is NOT.
+agent-session-analysis/runs/
+
+# Python bytecode cache (the agent-session-analysis tool is Python).
+__pycache__/
+*.pyc
+
 # Credentials: never commit a .env, at any depth. Keep a committed template only.
 .env
 .env.*
