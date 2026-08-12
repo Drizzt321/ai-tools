@@ -1,0 +1,14 @@
+# Run output is PRIVATE and must never be committed: distilled spines, findings, and
+# reports all contain real prompt excerpts, session IDs, and repo names. The actual rule
+# is that run output lives in a separate private tree entirely (see README "Privacy");
+# these patterns are defense-in-depth for accidents.
+runs/
+distilled/
+findings/
+*.jsonl
+events-*.json
+report*.md
+*report*.md
+*synthesis*.md
+scratch/
+workdir/
