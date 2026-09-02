@@ -312,6 +312,87 @@ hardcodes the literal path.
 
 ---
 
+## Perceived model latency -- MEASURED
+
+This dimension answers ONE question: **does a given model/effort feel slow to the user?** It is not
+about total agent working-time (that is the spine metric above) -- it is about how long the human
+waits, output by output, for the model to produce something. It is deterministic, keyed on the same
+record timestamps everything else uses.
+
+Two signals, both MEASURED:
+
+- **TTFO (time-to-first-output)** -- from a human prompt to the FIRST model-authored record of that
+  turn. "How long before the model says ANYTHING, even a thinking token." This is the headline
+  responsiveness number -- it is what the user stares at a blank screen for.
+- **Inter-output model latency (the gap)** -- the delta ENDING in a model-authored record. This is
+  the model's think-time to emit its next output during a turn.
+
+### The count-rule (what is model time vs what is not)
+
+The boundary is CAUSAL -- attribute each gap to what produced the record that ENDS it:
+
+```
+[assistant tool_use] --- gap ENDS in model output ---> COUNT (model think time)
+[user tool_result]   --- gap ENDS in a tool_result --> DROP  (tool runtime, not the model)
+[assistant thinking] --- gap ENDS in model output ---> COUNT (still the model working)
+```
+
+- **COUNT** any gap whose ending record is model-authored: `thinking`, `text`, or `tool_use`. All
+  three are the model doing work, including the several same-`message.id` records a single streamed
+  response is logged as (thinking -> text -> tool_use) -- those chunk gaps are perceived model time.
+- **DROP** any gap whose ending record is a `tool_result`. That span is the tool executing (a Bash
+  build, a Read, a sub-agent), NOT the model -- and the tool may not even be useful. Excluding it is
+  the whole point: it isolates *model* slowness from *tool* slowness. Across a run of back-to-back
+  tool calls, only the model->tool_use halves count; the tool_result->next-output halves are dropped.
+
+This reuses the SAME load-bearing classifier as the AskUserQuestion cut: a `tool_result` is a `user`
+record carrying `toolUseResult` (or a `tool_result` content part), back-referenced to its `tool_use`
+id. So the count-rule is a deterministic marker test, not a gap heuristic.
+
+### Grouping and statistics
+
+Every gap and every TTFO is grouped by **(model, speed, service_tier, inference_geo)** -- read from
+each assistant record's `message.usage`. All four keys are emitted even when constant for a given
+user (they vary across users, and will vary once sub-agent patterns are analyzed in a later version);
+today a single user typically sees one `standard`/`standard`/`not_available` group per model.
+
+Reported per group as a percentile ladder, NOT a single average -- because responsiveness is a TAIL
+property (UX responsiveness work optimizes p95/p99, not the median; the median hides the painful
+half, and one long stall wrecks the mean). Emitted:
+
+- **p50 / p75 / p90 / p95 / p99 / max** + N + mean (mean is emitted but flagged outlier-sensitive;
+  lead with p90/p95).
+- **Threshold-crossing rates** -- % of gaps over 1s / 5s / 10s (Nielsen's responsiveness lines:
+  instant / flow-unbroken / attention-lost). "% over 10s" is the most intuitive single number.
+- **Two axes:** raw wall-clock seconds (PRIMARY -- it is literally what the user waits) AND
+  sec-per-output-token (fair across response sizes: a 2000-token answer should take longer than a
+  50-token one). A model can be faster per-token yet feel slower overall if it front-loads a large
+  fixed TTFO cost or has a heavy stall tail -- both axes are needed to see that.
+
+### Where the data lives
+
+Raw per-session gap lists (per group) live in `metrics.json` under each session's `latency` block --
+that is the underlying raw layer, per the division-of-labor discipline. The run layer pools them into
+the ladders in `latency.json` (grouped by model/effort across all sessions), and a glanceable
+per-model headline (TTFO p50/p90, latency p50/p90, %>10s) is emitted into `run-meta`. The REPORT
+reads the pooled run-level view, not per-session values.
+
+### Honest caveats (kept in the open)
+
+- **Log time, not true first-token.** A record's timestamp is when that chunk was LOGGED (written on
+  completion), not when generation began. So TTFO is an UPPER BOUND on real time-to-first-token, and
+  an inter-output gap includes the generation time of the record it ends on. Good enough to compare
+  models against each other (same measurement basis); NOT a true streaming-latency instrument. A real
+  first-token metric needs streaming instrumentation the transcript does not carry (v2 gap).
+- **Effort tier is not fully surfaced.** `speed`/`service_tier` are in the data, but the `/e1-e5`
+  effort level and fast-mode toggle do not reliably appear as distinct `speed` values in current
+  transcripts. The four groupby keys are wired mechanically regardless; effort-level slicing waits
+  until an example surfaces the field (likely alongside sub-agent analysis) -- a v2 gap, not hunted now.
+- **Single run is not a trend.** Small N per group (a model seen in one session) makes the tail
+  noisy. Two runs compare; they do not establish a trend -- same rule as every other tier.
+
+---
+
 ## Work-type classification -- CLASSIFIED (agent judgement, auditable)
 
 One agent per session reads the transcript and assigns work-type(s) from a FIXED taxonomy of 13.
@@ -438,9 +519,13 @@ agent-session-analysis/
       metrics.json                 deterministic per-session output + aggregate
       temporal.json                day-of-week + hour-of-day histograms (human-prompt ts, local tz)
                                    + concurrent/overlapping-session pairs. FULL per-bucket data.
+      latency.json                 perceived model latency pooled by (model, speed, service_tier,
+                                   inference_geo): TTFO + inter-output gap ladders (p50..p99, %>Ns)
+                                   + per-token view. FULL per-group data. Raw per-session gaps in
+                                   metrics.json under each session's `latency` block.
       run-meta.json                mechanical run record: script version, window (requested +
                                    observed span), KB_ROOT, threshold, totals, skip breakdown,
-                                   temporal SUMMARY stats, scanned-file list. Provenance + comparability.
+                                   temporal + latency SUMMARY stats, scanned-file list. Provenance + comparability.
       run-meta.md                  human-glanceable render of run-meta.json (X time, Y agent-time,
                                    N turns, busiest day/hour, file list).
       judgements.json              fanout output (work-type + KB class value-lean), joined by path
@@ -556,15 +641,29 @@ knows what kind of claim they are reading:
    when prompts were sent, which is weak signal until the v2 "time in front of keyboard" metric
    exists (see v2 note). Keep the prose honest about that limit. Temporal is keyed on prompt-event
    timestamps, so it is robust to walk-away gaps; a session-wall-duration reading would not be.
-7. **What this run does and does NOT claim** -- explicit. The "does not" list is load-bearing: name
+7. **LATENCY** (from `latency.json`) -- perceived model latency per model/effort. MEASURED tier. This
+   is a per-MODEL overview across all sessions, NOT per-session values (raw per-session gaps live in
+   `metrics.json`; the report reads the pooled run-level view). Render as ONE table plus prose:
+   - **Per-(model, effort) table** -- one row per group, ordered worst-TTFO-first: model, speed,
+     TTFO p50, TTFO p90, latency p50, latency p90, and % of gaps over 10s. The full ladder
+     (p50/p75/p90/p95/p99 + per-token) stays in `latency.json`; the table carries the headline cut.
+   - **Prose callouts** -- observations only, per the "observations not method" rule, as a LIST when
+     enumerating models: which model has the worst TTFO (the blank-screen wait), which is spiky vs
+     consistent (a wide p50->p95 spread is a stall tail even when the median looks fine), and the
+     per-token flip if present (faster per-token yet slower overall = a fixed TTFO cost or stall tail).
+   Lead with the mechanism (the specific percentile pattern), not the feeling. State the honest limit
+   in one line: these are LOG timestamps, so TTFO is an upper bound on true time-to-first-token, and a
+   single run is a sample not a trend. Do NOT re-explain the count-rule or the tool_result exclusion --
+   that is method; it lives in the "Perceived model latency -- MEASURED" section above.
+8. **What this run does and does NOT claim** -- explicit. The "does not" list is load-bearing: name
    the counterfactuals deliberately NOT estimated (hours saved, tokens saved, effort avoided -- all
    struck as unsupportable) and that INDICATIVE leans are rank-only by design.
-8. **Tentative conclusions** -- the part we are iterating toward. Allowed to be soft and clearly
+9. **Tentative conclusions** -- the part we are iterating toward. Allowed to be soft and clearly
    hedged. Each conclusion MUST name the tier(s) it rests on and its confidence. This is where
    "potentially actionable" lives; it is explicitly NOT firm/hard yet -- say so.
-9. **Confidence statement** -- per tier: MEASURED high, CLASSIFIED med-high (single-agent judgment,
+10. **Confidence statement** -- per tier: MEASURED high, CLASSIFIED med-high (single-agent judgment,
    not cross-checked), INDICATIVE low-by-design.
-10. **Artifacts** -- list the run's files and what each is.
+11. **Artifacts** -- list the run's files and what each is.
 
 ### Claim discipline (what may be asserted, and how)
 

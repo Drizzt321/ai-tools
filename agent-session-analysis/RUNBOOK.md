@@ -51,11 +51,13 @@ python3 Tools/extract-session-metrics.py --scan ~/.claude/projects \
     --start <START> --end <END> --min-users 5 --out runs/
 ```
 
-Writes into the auto-created run dir: `metrics.json`, `temporal.json`, `run-meta.json`, `run-meta.md`.
-Read `run-meta.md` first -- it's the glanceable sanity check (session count, agent-time, skips).
+Writes into the auto-created run dir: `metrics.json`, `temporal.json`, `latency.json`,
+`run-meta.json`, `run-meta.md`. Read `run-meta.md` first -- it's the glanceable sanity check (session
+count, agent-time, skips, and the per-model latency table).
 
 **Sanity-check before continuing:** open `run-meta.md`. Does the session count look plausible? Did
-the sentinel/skip counts behave? If a number looks wrong, stop and investigate -- don't fanout on bad
+the sentinel/skip counts behave? Does the per-model latency table have the models you expect (and
+non-empty TTFO/latency for each)? If a number looks wrong, stop and investigate -- don't fanout on bad
 selection.
 
 ---

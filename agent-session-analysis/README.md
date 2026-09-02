@@ -30,15 +30,15 @@ python3 Tools/extract-session-metrics.py --scan ~/.claude/projects \
     --start 2026-05-21 --end 2026-06-03 --min-users 5 --out runs/
 ```
 
-That writes a per-run dir under `runs/` (`metrics.json`, `temporal.json`, `run-meta.json`,
-`run-meta.md`). The agent fanout (`Tools/classify-and-estimate.workflow.js`) adds the CLASSIFIED /
-INDICATIVE judgement layer on top.
+That writes a per-run dir under `runs/` (`metrics.json`, `temporal.json`, `latency.json`,
+`run-meta.json`, `run-meta.md`). The agent fanout (`Tools/classify-and-estimate.workflow.js`) adds
+the CLASSIFIED / INDICATIVE judgement layer on top.
 
 ## Tools
 
 | File | What it is |
 |------|------------|
-| [`Tools/extract-session-metrics.py`](./Tools/extract-session-metrics.py) | Deterministic pass (MEASURED tier). Pure Python, zero agent tokens: session selection, human-vs-tool-result classification, agent working-time, tokens, KB read/write counts, per-output timeline, day/hour + overlap temporal analysis, and a glanceable `run-meta.md`. |
+| [`Tools/extract-session-metrics.py`](./Tools/extract-session-metrics.py) | Deterministic pass (MEASURED tier). Pure Python, zero agent tokens: session selection, human-vs-tool-result classification, agent working-time, tokens, KB read/write counts, per-output timeline, day/hour + overlap temporal analysis, perceived model latency (TTFO + inter-output gaps, per model/effort), and a glanceable `run-meta.md`. |
 | [`Tools/classify-and-estimate.workflow.js`](./Tools/classify-and-estimate.workflow.js) | Agent fanout driver (CLASSIFIED + INDICATIVE tiers). One agent per session returns work-type + KB value-lean judgement only; deterministic metrics are joined by path afterward, never recomputed. |
 
 ## Inputs and configuration

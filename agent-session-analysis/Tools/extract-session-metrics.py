@@ -70,6 +70,53 @@ KB_CLASS_RULES = [
     ('index/nav',         'low-enabling', ['document-map']),
 ]
 
+# --- Perceived model latency (MEASURED) -------------------------------------------------------
+# Two signals, both from record timestamps:
+#   TTFO  = human prompt -> first model-authored record of that turn (time before ANY output).
+#   gap   = delta ENDING in a model-authored record (thinking/text/tool_use). COUNT-RULE:
+#             COUNT any gap whose ending record is model-authored;
+#             DROP  any gap whose ending record is a tool_result (tool runtime, not the model).
+# Deterministic: a tool_result is a 'user' record with 'toolUseResult' (or a tool_result content
+# part). Everything on the assistant side is model work. Grouped by (model, speed, service_tier,
+# inference_geo) -- all four keys emitted even when constant (they vary per user / for sub-agents).
+# LIMIT (v2 gap): timestamps are LOG time (chunk written), not true first-token; TTFO is an upper
+# bound on real time-to-first-token. Streaming logs one response as several same-message.id records.
+LATENCY_THRESHOLDS_SEC = (1, 5, 10)   # Nielsen responsiveness lines: instant / flow / attention-loss
+LATENCY_PCTLS = (0.5, 0.75, 0.9, 0.95, 0.99)
+
+def _pctl(sorted_vals, p):
+    """p-quantile of an already-sorted non-empty list (nearest-rank)."""
+    return sorted_vals[min(int(len(sorted_vals) * p), len(sorted_vals) - 1)]
+
+def latency_stats(vals):
+    """Percentile ladder + threshold-crossing rates for a list of gap seconds.
+    Returns None for an empty list. mean is emitted but flagged outlier-sensitive by convention."""
+    if not vals:
+        return None
+    s = sorted(vals)
+    n = len(s)
+    stats = {"n": n, "mean": round(sum(s) / n, 2), "max": round(s[-1], 2)}
+    for p in LATENCY_PCTLS:
+        stats[f"p{int(p * 100)}"] = round(_pctl(s, p), 2)
+    stats["over_thresholds"] = {
+        f"gt_{t}s": round(100.0 * sum(1 for x in s if x > t) / n, 1)
+        for t in LATENCY_THRESHOLDS_SEC
+    }
+    return stats
+
+def _record_model_group(d):
+    """(model, speed, service_tier, inference_geo) for an assistant record; keys as a tuple."""
+    msg = d.get('message') if isinstance(d.get('message'), dict) else {}
+    u = msg.get('usage') if isinstance(msg, dict) else {}
+    u = u if isinstance(u, dict) else {}
+    return (msg.get('model') or 'unknown', u.get('speed', 'na'),
+            u.get('service_tier', 'na'), u.get('inference_geo', 'na'))
+
+def _record_out_tokens(d):
+    msg = d.get('message') if isinstance(d.get('message'), dict) else {}
+    u = msg.get('usage') if isinstance(msg, dict) else {}
+    return (u.get('output_tokens', 0) or 0) if isinstance(u, dict) else 0
+
 def default_home_prefix():
     """The encoded home fragment Claude Code embeds in a project dir name, derived from $HOME.
     /home/alice -> '-home-alice-' (slashes -> dashes, with leading+trailing dash)."""
@@ -263,6 +310,43 @@ def session_metrics(path, kb_root=KB_ROOT_DEFAULT, build_timeline=False):
     session_start_local = min(all_ts).astimezone().isoformat() if all_ts else None
     session_end_local = max(all_ts).astimezone().isoformat() if all_ts else None
 
+    # Perceived model latency (MEASURED). Raw per-group gap lists live at the session level so
+    # metrics.json is the underlying raw layer; the run layer pools them into the percentile ladders.
+    # Group key is a "model|speed|service_tier|inference_geo" string (JSON-safe; tuples can't be keys).
+    lat_gaps = {}      # group_str -> [wall-clock sec], gap ending in a model-authored record
+    lat_pertok = {}    # group_str -> [sec per output token] (same gaps, normalized)
+    lat_ttfo = {}      # group_str -> [TTFO sec], keyed by the FIRST output's group
+    def _gk(d):
+        return '|'.join(str(x) for x in _record_model_group(d))
+    # TTFO: each human prompt -> first assistant record before the next human prompt.
+    for k, hi in enumerate(human_idx):
+        end_i = human_idx[k + 1] if k + 1 < len(human_idx) else len(seq)
+        t0 = parse_ts(seq[hi]['timestamp'])
+        for j in range(hi + 1, end_i):
+            if seq[j].get('type') == 'assistant':
+                te = parse_ts(seq[j]['timestamp'])
+                if t0 and te:
+                    d = (te - t0).total_seconds()
+                    if d >= 0:
+                        lat_ttfo.setdefault(_gk(seq[j]), []).append(round(d, 3))
+                break
+    # inter-output gaps: count a gap ONLY when it ends in a model-authored (assistant) record;
+    # a tool_result-ending gap is tool runtime and is dropped.
+    prev_ts = None
+    for d in seq:
+        ts = parse_ts(d.get('timestamp'))
+        if ts is not None and prev_ts is not None and d.get('type') == 'assistant' and not is_tool_result(d):
+            gap = (ts - prev_ts).total_seconds()
+            if gap >= 0:
+                g = _gk(d)
+                lat_gaps.setdefault(g, []).append(round(gap, 3))
+                tok = _record_out_tokens(d)
+                if tok > 0:
+                    lat_pertok.setdefault(g, []).append(round(gap / tok, 6))
+        if ts is not None:
+            prev_ts = ts
+    latency = {"gaps_sec": lat_gaps, "gaps_per_tok_sec": lat_pertok, "ttfo_sec": lat_ttfo}
+
     result = {
         "human_turns": n,
         "agent_walltime_sec": round(sum(turns), 1),
@@ -280,6 +364,7 @@ def session_metrics(path, kb_root=KB_ROOT_DEFAULT, build_timeline=False):
         "session_start_local": session_start_local,
         "session_end_local": session_end_local,
         "human_prompt_ts_local": human_prompt_ts_local,
+        "latency": latency,
     }
     if build_timeline:
         result["timeline"] = timeline
@@ -417,6 +502,65 @@ def temporal_summary(temporal):
         "overlapping_sessions": temporal['overlap']['sessions_involved'],
     }
 
+def latency_analysis(results):
+    """Run-level MEASURED perceived-model-latency, pooled across all sessions and grouped by
+    (model, speed, service_tier, inference_geo). Mirrors temporal_analysis: FULL per-group ladders
+    live here (latency.json); a glanceable summary is derived separately for run-meta.
+
+    Two signals: gaps (inter-output model latency) and ttfo (time-to-first-output). Both carry the
+    percentile ladder + threshold-crossing rates from latency_stats. per_tok is the size-normalized
+    view of the same gaps (sec per output token) -- fair across response sizes; raw wall-clock is
+    primary (it is what the user waits)."""
+    pooled_gaps = {}
+    pooled_pertok = {}
+    pooled_ttfo = {}
+    for r in results:
+        lat = r.get('latency') or {}
+        for g, v in (lat.get('gaps_sec') or {}).items():
+            pooled_gaps.setdefault(g, []).extend(v)
+        for g, v in (lat.get('gaps_per_tok_sec') or {}).items():
+            pooled_pertok.setdefault(g, []).extend(v)
+        for g, v in (lat.get('ttfo_sec') or {}).items():
+            pooled_ttfo.setdefault(g, []).extend(v)
+
+    groups = sorted(set(pooled_gaps) | set(pooled_ttfo))
+    by_group = {}
+    for g in groups:
+        model, speed, tier, geo = (g.split('|', 3) + ['', '', '', ''])[:4]
+        pt = sorted(pooled_pertok.get(g, []))
+        by_group[g] = {
+            "model": model, "speed": speed, "service_tier": tier, "inference_geo": geo,
+            "model_latency": latency_stats(pooled_gaps.get(g, [])),
+            "ttfo": latency_stats(pooled_ttfo.get(g, [])),
+            "per_tok_ms": {
+                "p50": round(_pctl(pt, 0.5) * 1000, 3),
+                "p90": round(_pctl(pt, 0.9) * 1000, 3),
+                "n": len(pt),
+            } if pt else None,
+        }
+    return {"note": "MEASURED; log-time not true first-token (TTFO is an upper bound)",
+            "thresholds_sec": list(LATENCY_THRESHOLDS_SEC),
+            "by_group": by_group}
+
+
+def latency_summary(latency):
+    """Glanceable per-model headline for run-meta: TTFO p50/p90 and model-latency p90 + %>10s.
+    Full ladders stay in latency.json."""
+    rows = []
+    for g, d in latency['by_group'].items():
+        ml, tt = d.get('model_latency'), d.get('ttfo')
+        rows.append({
+            "group": g,
+            "model": d['model'], "speed": d['speed'],
+            "ttfo_p50_sec": tt['p50'] if tt else None,
+            "ttfo_p90_sec": tt['p90'] if tt else None,
+            "model_latency_p50_sec": ml['p50'] if ml else None,
+            "model_latency_p90_sec": ml['p90'] if ml else None,
+            "model_latency_pct_over_10s": ml['over_thresholds']['gt_10s'] if ml else None,
+        })
+    rows.sort(key=lambda r: -(r['ttfo_p90_sec'] or 0))
+    return {"groups": rows}
+
 def make_run_dir(out_parent, start_date, end_date):
     """Create runs/<start>_<end>/ ; on collision append _1, _2, ... Never clobbers an existing run."""
     base = f"{start_date}_{end_date}"
@@ -458,6 +602,25 @@ def render_run_meta_md(meta):
         f"- **Busiest hour of day:** {ts['busiest_hour_local'] if ts['busiest_hour_local'] is not None else 'n/a'}:00",
         f"- **Sessions in an overlapping/concurrent span:** {ts['overlapping_sessions']}",
         "", "_(full day/hour histograms + overlap pairs in `temporal.json`)_", "",
+        "## Perceived model latency (MEASURED, per model/effort)", "",
+    ]
+    lat_rows = meta.get('latency_summary', {}).get('groups', [])
+    if lat_rows:
+        lines.append("| model | speed | TTFO p50 | TTFO p90 | latency p50 | latency p90 | % >10s |")
+        lines.append("|-------|-------|---------:|---------:|------------:|------------:|-------:|")
+        def _s(v):
+            return f"{v:.1f}s" if isinstance(v, (int, float)) else "n/a"
+        def _p(v):
+            return f"{v:.0f}%" if isinstance(v, (int, float)) else "n/a"
+        for r in lat_rows:
+            lines.append(f"| {r['model']} | {r['speed']} | {_s(r['ttfo_p50_sec'])} | "
+                         f"{_s(r['ttfo_p90_sec'])} | {_s(r['model_latency_p50_sec'])} | "
+                         f"{_s(r['model_latency_p90_sec'])} | {_p(r['model_latency_pct_over_10s'])} |")
+    else:
+        lines.append("_(no latency groups -- no assistant records with usable timestamps)_")
+    lines += [
+        "", "_(TTFO = prompt -> first output; latency = inter-output model gaps, tool runtime excluded; "
+        "full ladders p50/p75/p90/p95/p99 + per-token in `latency.json`)_", "",
         "## Scanned files", "",
         f"{len(meta['scanned_files'])} transcript(s) analyzed:", "",
     ]
@@ -513,6 +676,7 @@ def main():
     agg["skipped"] = skipped
     agg["kb_root"] = a.kb_root
     temporal = temporal_analysis(results)
+    latency = latency_analysis(results)
     out = {"version": "extract-session-metrics", "aggregate": agg, "sessions": results}
 
     if a.out:
@@ -526,6 +690,7 @@ def main():
         json.dump(out, open(metrics_path, 'w'), indent=1)
 
         json.dump(temporal, open(os.path.join(run_dir, 'temporal.json'), 'w'), indent=1)
+        json.dump(latency, open(os.path.join(run_dir, 'latency.json'), 'w'), indent=1)
 
         observed = [r['session_start_local'][:10] for r in results if r.get('session_start_local')]
         meta = {
@@ -541,6 +706,7 @@ def main():
             "totals": agg,
             "skipped": skipped,
             "temporal_summary": temporal_summary(temporal),
+            "latency_summary": latency_summary(latency),
             "scanned_files": [r['path'] for r in results],
         }
         json.dump(meta, open(os.path.join(run_dir, 'run-meta.json'), 'w'), indent=1)

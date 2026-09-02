@@ -34,3 +34,6 @@ __pycache__/
 **/.env.*
 !.env.example
 !**/.env.example
+
+# Serena (code-intelligence MCP) per-project config and cache: local tooling state, not source.
+.serena/
