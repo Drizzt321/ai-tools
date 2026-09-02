@@ -84,7 +84,7 @@ your-project/
   DOCUMENT-MAP.md        — File index and loading guide
   plans/                 — Actionable execution plans (per-topic)
     archive/             — Completed/deprecated plans (historical reference)
-  reference/             — Research, landscape analyses, technical reference
+  reference/             — Full-detail research, deep dives, technical reference
   output/                — Finished or near-finished deliverables
     documents/           — Reports, memos, proposals, written deliverables
     diagrams/            — Flowcharts, org charts, architecture visuals
@@ -138,7 +138,9 @@ Plans that are completed or superseded move to `plans/archive/`.
 
 ### reference/
 
-Research findings, landscape analyses, technical reference material, API documentation summaries. Things you'd look up when you're "in the weeds" on a specific topic.
+The complete, detailed record: research findings, deep dives, landscape analyses, technical reference material, API documentation. Things you'd look up when you're "in the weeds" on a specific topic.
+
+Reference documents are as complete and detailed as possible. This is the one place in the KB where length is a feature: the point of a reference is that nobody ever has to redo the research. Whenever research is done for a project, especially detailed research, the default is to write the full, completed output here **first**. Summaries, syntheses, and briefs derived from it are produced **afterward**, shaped to the current need, and they are not references, so they do not live here unless you're told otherwise. They go to `output/documents/` (a deliverable), `03-decisions.md` (a decision), `plans/` (a plan), or simply into the conversation.
 
 ### ongoing/
 
@@ -152,7 +154,7 @@ Historical archives. When status updates, decision logs, or phase details get lo
 
 Finished or near-finished deliverables — things the agent produced that you'll use, share, or submit. Organized into subdirectories by type:
 
-- **documents/** — Reports, memos, proposals, analyses, written deliverables. Project-specific outputs like reviews or reports can go here or in their own subdirectory under `output/` — whatever feels natural.
+- **documents/** — Reports, memos, proposals, analyses, written deliverables. Summaries and syntheses distilled from `reference/` material belong here when they are deliverables. Project-specific outputs like reviews or reports can go here or in their own subdirectory under `output/` — whatever feels natural.
 - **diagrams/** — Flowcharts, org charts, architecture visuals, process maps.
 - **images/** — Generated images, screenshots, visual assets.
 - **data/** — Spreadsheets, CSVs, analysis results, data exports.
@@ -192,7 +194,7 @@ When the user starts a new project or you determine one is needed:
 
 When you produce knowledge worth keeping:
 - Implementation plans go in `plans/`.
-- Research findings go in `reference/`.
+- Research, deep dives, and investigations go in `reference/` **in full, as the first write** — before any summary exists. Then synthesize or summarize for the need at hand. The synthesis goes to `output/`, `03-decisions.md`, `plans/`, or the conversation — never to `reference/` unless directed otherwise.
 - Finished deliverables go in `output/` (documents, diagrams, images, data as appropriate).
 - Decisions go in `03-decisions.md` (brief entry) with detailed analysis linked from `plans/` or `reference/`.
 - Update `DOCUMENT-MAP.md` when adding new files.
@@ -205,7 +207,7 @@ When you produce knowledge worth keeping:
 
 **Predict where things go.** Anyone (human or agent) should be able to guess where a piece of information lives without consulting an index. Plans are in `plans/`. Decisions are in `03-decisions.md`. Reference material is in `reference/`.
 
-**Concise over comprehensive.** Every file should be as short as it can be while remaining useful. If a document is getting long, split it or archive the old parts.
+**Concise over comprehensive.** Every file should be as short as it can be while remaining useful. If a document is getting long, split it or archive the old parts. `reference/` is the deliberate exception: a reference is as complete as possible, and the conciseness lives in the summaries derived from it.
 
 **Evolve, don't ossify.** The structure serves the project, not the other way around. Add directories if your project needs them. Remove files that aren't pulling their weight. The template is a starting point.
 

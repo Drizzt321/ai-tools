@@ -15,7 +15,7 @@
   DOCUMENT-MAP.md            — This file. File index and loading strategy.
   plans/                     — Actionable execution docs. Pull in per-topic.
     archive/                 — Deprecated plans, kept for historical reference.
-  reference/                 — Look-up material. Pull in when in the weeds.
+  reference/                 — Full-detail research & look-up material. Pull in when in the weeds.
   output/                    — Finished or near-finished deliverables.
     documents/               — Reports, memos, proposals, written deliverables.
     diagrams/                — Flowcharts, org charts, architecture visuals.
@@ -50,6 +50,8 @@ Context is finite. Load what's relevant, not everything.
 |----------|-----------------|
 
 ### Reference — Pull in when you need specifics
+
+Complete, detailed research and reference material. Full output of any research lands here first; summaries derived from it live elsewhere (`output/`, `03-decisions.md`, `plans/`).
 
 | Document | When to pull in |
 |----------|-----------------|

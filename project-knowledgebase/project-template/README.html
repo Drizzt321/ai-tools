@@ -313,7 +313,7 @@ all files and describes when to load each one.</code></pre>
   &nbsp;&nbsp;DOCUMENT-MAP.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; File index and loading guide</span><br>
   &nbsp;&nbsp;plans/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Actionable execution plans (per-topic)</span><br>
   &nbsp;&nbsp;&nbsp;&nbsp;archive/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Completed/deprecated plans</span><br>
-  &nbsp;&nbsp;reference/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Research, landscape analyses, technical reference</span><br>
+  &nbsp;&nbsp;reference/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Full-detail research, deep dives, technical reference</span><br>
   &nbsp;&nbsp;output/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Finished or near-finished deliverables</span><br>
   &nbsp;&nbsp;&nbsp;&nbsp;documents/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Reports, memos, proposals, written deliverables</span><br>
   &nbsp;&nbsp;&nbsp;&nbsp;diagrams/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Flowcharts, org charts, architecture visuals</span><br>
@@ -370,7 +370,8 @@ all files and describes when to load each one.</code></pre>
 
 <div class="file-role">
   <h3>reference/</h3>
-  <p>Research findings, landscape analyses, technical reference material, API documentation summaries. Things you'd look up when you're "in the weeds" on a specific topic.</p>
+  <p>The complete, detailed record: research findings, deep dives, landscape analyses, technical reference material, API documentation. Things you'd look up when you're "in the weeds" on a specific topic.</p>
+  <p>Reference documents are as complete and detailed as possible. This is the one place in the KB where length is a feature: the point of a reference is that nobody ever has to redo the research. Whenever research is done for a project, especially detailed research, the default is to write the full, completed output here <strong>first</strong>. Summaries, syntheses, and briefs derived from it are produced <strong>afterward</strong>, shaped to the current need, and they are not references, so they do not live here unless you're told otherwise. They go to <code>output/documents/</code> (a deliverable), <code>03-decisions.md</code> (a decision), <code>plans/</code> (a plan), or simply into the conversation.</p>
 </div>
 
 <div class="file-role">
@@ -387,7 +388,7 @@ all files and describes when to load each one.</code></pre>
   <h3>output/</h3>
   <p>Finished or near-finished deliverables &mdash; things the agent produced that you'll use, share, or submit. Organized into subdirectories by type:</p>
   <ul>
-    <li><strong>documents/</strong> &mdash; Reports, memos, proposals, analyses, written deliverables. Project-specific outputs like reviews or reports can go here or in their own subdirectory under <code>output/</code> &mdash; whatever feels natural.</li>
+    <li><strong>documents/</strong> &mdash; Reports, memos, proposals, analyses, written deliverables. Summaries and syntheses distilled from <code>reference/</code> material belong here when they are deliverables. Project-specific outputs like reviews or reports can go here or in their own subdirectory under <code>output/</code> &mdash; whatever feels natural.</li>
     <li><strong>diagrams/</strong> &mdash; Flowcharts, org charts, architecture visuals, process maps.</li>
     <li><strong>images/</strong> &mdash; Generated images, screenshots, visual assets.</li>
     <li><strong>data/</strong> &mdash; Spreadsheets, CSVs, analysis results, data exports.</li>
@@ -432,7 +433,7 @@ all files and describes when to load each one.</code></pre>
 <p>When you produce knowledge worth keeping:</p>
 <ul>
   <li>Implementation plans go in <code>plans/</code>.</li>
-  <li>Research findings go in <code>reference/</code>.</li>
+  <li>Research, deep dives, and investigations go in <code>reference/</code> <strong>in full, as the first write</strong> &mdash; before any summary exists. Then synthesize or summarize for the need at hand. The synthesis goes to <code>output/</code>, <code>03-decisions.md</code>, <code>plans/</code>, or the conversation &mdash; never to <code>reference/</code> unless directed otherwise.</li>
   <li>Finished deliverables go in <code>output/</code> (documents, diagrams, images, data as appropriate).</li>
   <li>Decisions go in <code>03-decisions.md</code> (brief entry) with detailed analysis linked from <code>plans/</code> or <code>reference/</code>.</li>
   <li>Update <code>DOCUMENT-MAP.md</code> when adding new files.</li>
@@ -454,7 +455,7 @@ all files and describes when to load each one.</code></pre>
 
 <div class="principle">
   <strong>Concise over comprehensive.</strong>
-  Every file should be as short as it can be while remaining useful. If a document is getting long, split it or archive the old parts.
+  Every file should be as short as it can be while remaining useful. If a document is getting long, split it or archive the old parts. <code>reference/</code> is the deliberate exception: a reference is as complete as possible, and the conciseness lives in the summaries derived from it.
 </div>
 
 <div class="principle">
