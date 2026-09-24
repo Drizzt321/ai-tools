@@ -13,8 +13,9 @@
   03-decisions.md            — Working decisions & rationale. (Tier 2B)
   04-backlog.md              — Ideas, links, future exploration. (Tier 2C)
   DOCUMENT-MAP.md            — This file. File index and loading strategy.
+  ARCHIVE-MAP.md             — Index of archived material. Load only when going back into history.
   plans/                     — Actionable execution docs. Pull in per-topic.
-    archive/                 — Deprecated plans, kept for historical reference.
+    archive/                 — Completed/superseded plans. Any directory may have an archive/.
   reference/                 — Full-detail research & look-up material. Pull in when in the weeds.
   output/                    — Finished or near-finished deliverables.
     documents/               — Reports, memos, proposals, written deliverables.
@@ -56,6 +57,10 @@ Complete, detailed research and reference material. Full output of any research 
 | Document | When to pull in |
 |----------|-----------------|
 
+### Archive — Only when going back into history
+
+Completed and superseded material lives in `archive/` subdirectories and is indexed in `ARCHIVE-MAP.md`, not here. This map lists live material only.
+
 ## Maintenance
 
-When adding a new file to the project, update this document map.
+When adding a new file to the project, update this document map. When archiving a file, remove its row here and add one to `ARCHIVE-MAP.md`.

@@ -20,8 +20,10 @@ Three principles make it work:
 - **Tiered loading.** Context windows are finite, so the KB is organized so an agent loads only
   what's relevant. A quick question reads just the brief (~500 tokens); a deep implementation
   session pulls in a few more documents. Nothing ever loads everything.
-- **Self-describing.** Each KB carries a `DOCUMENT-MAP.md` that indexes every file and says when to
-  load it -- the agent's entry point for deciding what's relevant to the current task.
+- **Self-describing.** Each KB carries a `DOCUMENT-MAP.md` that indexes every live file and says when
+  to load it -- the agent's entry point for deciding what's relevant to the current task. Completed
+  and superseded material moves to `archive/` subdirectories, indexed separately in `ARCHIVE-MAP.md`
+  so the main map stays small.
 
 The loading tiers, concretely:
 

@@ -81,9 +81,10 @@ your-project/
   02-status.md           — Phase status, tasks, what's next (Tier 2A)
   03-decisions.md        — Key decisions with rationale (Tier 2B)
   04-backlog.md          — Ideas, links, future exploration (Tier 2C)
-  DOCUMENT-MAP.md        — File index and loading guide
+  DOCUMENT-MAP.md        — File index and loading guide (live material only)
+  ARCHIVE-MAP.md         — Index of archived material (load only for history)
   plans/                 — Actionable execution plans (per-topic)
-    archive/             — Completed/deprecated plans (historical reference)
+    archive/             — Completed/superseded plans (any directory may have one)
   reference/             — Full-detail research, deep dives, technical reference
   output/                — Finished or near-finished deliverables
     documents/           — Reports, memos, proposals, written deliverables
@@ -128,13 +129,21 @@ Low-friction landing zone for ideas, links, tools to evaluate, integration conce
 
 Central index of every file in the project. For each file: what it is, when to load it. This is what an agent reads to decide which documents are relevant to the current conversation.
 
-Update this whenever you add or rename a file. It's the table of contents for the whole knowledge base.
+Update this whenever you add or rename a file. It's the table of contents for the live knowledge base; archived material is indexed in `ARCHIVE-MAP.md` instead, so this map stays small.
+
+### ARCHIVE-MAP.md
+
+Index of everything archived: where each item was, where it is now, when and why it was archived, and what superseded it. Agents load it only when going back into the project's history, never as part of normal orientation. The table doubles as the undo list, which matters when the KB is not under version control.
+
+### Archiving
+
+Anything completed, superseded, or otherwise past — a finished plan, a review of merged work, scratch from a closed task — moves into an `archive/` subdirectory beside it: `plans/archive/`, `reviews/archive/`, `scratch/archive/`, and so on. Any directory may have one; create it when first needed. On each move, remove the file's row from `DOCUMENT-MAP.md` and add a row to `ARCHIVE-MAP.md`. Archive rather than delete: archived files cost nothing to keep, and they record why things are the way they are. Delete only what has no value as history, such as regenerable build output or checked-out copies of code.
 
 ### plans/
 
 Actionable documents: implementation plans, design specs, feature breakdowns. Each plan is a self-contained document for a specific topic. An agent loads the plan relevant to the current work, not all plans.
 
-Plans that are completed or superseded move to `plans/archive/`.
+Plans that are completed or superseded move to `plans/archive/` (see Archiving).
 
 ### reference/
 
@@ -148,7 +157,7 @@ Operational runbooks and living process documents — things that describe how t
 
 ### journal/
 
-Historical archives. When status updates, decision logs, or phase details get long, rotate the old content here. Useful for understanding how the project evolved, but rarely loaded.
+Historical archives. When status updates, decision logs, or phase details get long, rotate the old content here, and add a row to `ARCHIVE-MAP.md`. Useful for understanding how the project evolved, but rarely loaded. (Whole files that are past go to an `archive/` subdirectory instead; `journal/` is for content rotated out of the living top-level files.)
 
 ### output/
 
@@ -173,7 +182,7 @@ If you're an AI agent reading this, here's the protocol:
 
 When the user starts a new project or you determine one is needed:
 
-1. Create a sibling directory named after the project, and copy in **only the project files**: `00-project-brief.md`, `02-status.md`, `03-decisions.md`, `04-backlog.md`, `DOCUMENT-MAP.md`, plus the `plans/` and `reference/` directories.
+1. Create a sibling directory named after the project, and copy in **only the project files**: `00-project-brief.md`, `02-status.md`, `03-decisions.md`, `04-backlog.md`, `DOCUMENT-MAP.md`, `ARCHIVE-MAP.md`, plus the `plans/` and `reference/` directories.
 2. **Do NOT copy `README.md`, `README.html`, or `project-template.zip` into the new project** — those document the template *itself*, not any project. A project's `00-project-brief.md` is its README (the single orient-me document), and `DOCUMENT-MAP.md` is its canonical entry point. (A project may add its own `README.md` later if it has a real need — e.g. it gets published to a git remote — but it is never copied from the template.)
 3. Fill in `00-project-brief.md` based on what you know from the conversation.
 4. Update `DOCUMENT-MAP.md` with the project name in the directory tree.
@@ -188,7 +197,8 @@ When the user starts a new project or you determine one is needed:
    - Making implementation decisions? Load `03-decisions.md`.
    - Planning or brainstorming? Load `04-backlog.md`.
 4. **Load plans/reference on demand** — only when the conversation is specifically about that topic.
-5. **Don't load everything.** The whole point is selective loading. If you're answering a quick question, the brief is probably enough.
+5. **Load `ARCHIVE-MAP.md` only when going back into history** — something past is referenced, or the question is how the project got here. Archived files are otherwise out of scope, and searches can skip them (e.g. `grep --exclude-dir=archive`).
+6. **Don't load everything.** The whole point is selective loading. If you're answering a quick question, the brief is probably enough.
 
 ### Writing Back
 
@@ -198,6 +208,7 @@ When you produce knowledge worth keeping:
 - Finished deliverables go in `output/` (documents, diagrams, images, data as appropriate).
 - Decisions go in `03-decisions.md` (brief entry) with detailed analysis linked from `plans/` or `reference/`.
 - Update `DOCUMENT-MAP.md` when adding new files.
+- When something is past, archive it (see Archiving): move it to the `archive/` beside it, drop its `DOCUMENT-MAP.md` row, add an `ARCHIVE-MAP.md` row.
 - Update `02-status.md` when phase status changes.
 - Use `scratch/` for intermediate work that might graduate later.
 

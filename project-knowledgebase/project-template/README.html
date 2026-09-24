@@ -310,9 +310,10 @@ all files and describes when to load each one.</code></pre>
   &nbsp;&nbsp;02-status.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Phase status, tasks, what's next (Tier 2A)</span><br>
   &nbsp;&nbsp;03-decisions.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Key decisions with rationale (Tier 2B)</span><br>
   &nbsp;&nbsp;04-backlog.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Ideas, links, future exploration (Tier 2C)</span><br>
-  &nbsp;&nbsp;DOCUMENT-MAP.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; File index and loading guide</span><br>
+  &nbsp;&nbsp;DOCUMENT-MAP.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; File index and loading guide (live material only)</span><br>
+  &nbsp;&nbsp;ARCHIVE-MAP.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Index of archived material (load only for history)</span><br>
   &nbsp;&nbsp;plans/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Actionable execution plans (per-topic)</span><br>
-  &nbsp;&nbsp;&nbsp;&nbsp;archive/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Completed/deprecated plans</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;archive/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Completed/superseded plans (any directory may have one)</span><br>
   &nbsp;&nbsp;reference/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Full-detail research, deep dives, technical reference</span><br>
   &nbsp;&nbsp;output/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Finished or near-finished deliverables</span><br>
   &nbsp;&nbsp;&nbsp;&nbsp;documents/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="label">&mdash; Reports, memos, proposals, written deliverables</span><br>
@@ -359,13 +360,23 @@ all files and describes when to load each one.</code></pre>
 <div class="file-role">
   <h3>DOCUMENT-MAP.md</h3>
   <p>Central index of every file in the project. For each file: what it is, when to load it. This is what an agent reads to decide which documents are relevant to the current conversation.</p>
-  <p>Update this whenever you add or rename a file. It's the table of contents for the whole knowledge base.</p>
+  <p>Update this whenever you add or rename a file. It's the table of contents for the live knowledge base; archived material is indexed in <code>ARCHIVE-MAP.md</code> instead, so this map stays small.</p>
+</div>
+
+<div class="file-role">
+  <h3>ARCHIVE-MAP.md</h3>
+  <p>Index of everything archived: where each item was, where it is now, when and why it was archived, and what superseded it. Agents load it only when going back into the project's history, never as part of normal orientation. The table doubles as the undo list, which matters when the KB is not under version control.</p>
+</div>
+
+<div class="file-role">
+  <h3>Archiving</h3>
+  <p>Anything completed, superseded, or otherwise past &mdash; a finished plan, a review of merged work, scratch from a closed task &mdash; moves into an <code>archive/</code> subdirectory beside it: <code>plans/archive/</code>, <code>reviews/archive/</code>, <code>scratch/archive/</code>, and so on. Any directory may have one; create it when first needed. On each move, remove the file's row from <code>DOCUMENT-MAP.md</code> and add a row to <code>ARCHIVE-MAP.md</code>. Archive rather than delete: archived files cost nothing to keep, and they record why things are the way they are. Delete only what has no value as history, such as regenerable build output or checked-out copies of code.</p>
 </div>
 
 <div class="file-role">
   <h3>plans/</h3>
   <p>Actionable documents: implementation plans, design specs, feature breakdowns. Each plan is a self-contained document for a specific topic. An agent loads the plan relevant to the current work, not all plans.</p>
-  <p>Plans that are completed or superseded move to <code>plans/archive/</code>.</p>
+  <p>Plans that are completed or superseded move to <code>plans/archive/</code> (see Archiving).</p>
 </div>
 
 <div class="file-role">
@@ -381,7 +392,7 @@ all files and describes when to load each one.</code></pre>
 
 <div class="file-role">
   <h3>journal/</h3>
-  <p>Historical archives. When status updates, decision logs, or phase details get long, rotate the old content here. Useful for understanding how the project evolved, but rarely loaded.</p>
+  <p>Historical archives. When status updates, decision logs, or phase details get long, rotate the old content here, and add a row to <code>ARCHIVE-MAP.md</code>. Useful for understanding how the project evolved, but rarely loaded. (Whole files that are past go to an <code>archive/</code> subdirectory instead; <code>journal/</code> is for content rotated out of the living top-level files.)</p>
 </div>
 
 <div class="file-role">
@@ -407,7 +418,7 @@ all files and describes when to load each one.</code></pre>
 <h3>Creating a New Project KB</h3>
 <p>When the user starts a new project or you determine one is needed:</p>
 <ol>
-  <li>Create a sibling directory named after the project, and copy in <strong>only the project files</strong>: <code>00-project-brief.md</code>, <code>02-status.md</code>, <code>03-decisions.md</code>, <code>04-backlog.md</code>, <code>DOCUMENT-MAP.md</code>, plus the <code>plans/</code> and <code>reference/</code> directories.</li>
+  <li>Create a sibling directory named after the project, and copy in <strong>only the project files</strong>: <code>00-project-brief.md</code>, <code>02-status.md</code>, <code>03-decisions.md</code>, <code>04-backlog.md</code>, <code>DOCUMENT-MAP.md</code>, <code>ARCHIVE-MAP.md</code>, plus the <code>plans/</code> and <code>reference/</code> directories.</li>
   <li><strong>Do NOT copy <code>README.md</code>, <code>README.html</code>, or <code>project-template.zip</code> into the new project</strong> — those document the template <em>itself</em>, not any project. A project's <code>00-project-brief.md</code> is its README (the single orient-me document), and <code>DOCUMENT-MAP.md</code> is its canonical entry point. (A project may add its own <code>README.md</code> later if it has a real need &mdash; e.g. it gets published to a git remote &mdash; but it is never copied from the template.)</li>
   <li>Fill in <code>00-project-brief.md</code> based on what you know from the conversation.</li>
   <li>Update <code>DOCUMENT-MAP.md</code> with the project name in the directory tree.</li>
@@ -426,6 +437,7 @@ all files and describes when to load each one.</code></pre>
     </ul>
   </li>
   <li><strong>Load plans/reference on demand</strong> &mdash; only when the conversation is specifically about that topic.</li>
+  <li><strong>Load <code>ARCHIVE-MAP.md</code> only when going back into history</strong> &mdash; something past is referenced, or the question is how the project got here. Archived files are otherwise out of scope, and searches can skip them (e.g. <code>grep --exclude-dir=archive</code>).</li>
   <li><strong>Don't load everything.</strong> The whole point is selective loading. If you're answering a quick question, the brief is probably enough.</li>
 </ol>
 
@@ -437,6 +449,7 @@ all files and describes when to load each one.</code></pre>
   <li>Finished deliverables go in <code>output/</code> (documents, diagrams, images, data as appropriate).</li>
   <li>Decisions go in <code>03-decisions.md</code> (brief entry) with detailed analysis linked from <code>plans/</code> or <code>reference/</code>.</li>
   <li>Update <code>DOCUMENT-MAP.md</code> when adding new files.</li>
+  <li>When something is past, archive it (see Archiving): move it to the <code>archive/</code> beside it, drop its <code>DOCUMENT-MAP.md</code> row, add an <code>ARCHIVE-MAP.md</code> row.</li>
   <li>Update <code>02-status.md</code> when phase status changes.</li>
   <li>Use <code>scratch/</code> for intermediate work that might graduate later.</li>
 </ul>
