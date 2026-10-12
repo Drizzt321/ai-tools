@@ -10,14 +10,16 @@ This template gives each project a small, predictable set of files that an agent
 
 ## Setup
 
+These steps assume an agent that can read and write a folder on your computer, such as Claude Code or Cowork. If you work in claude.ai in a browser, where the agent has no access to your local files, use [Alternative Setup: Google Drive or Similar](#alternative-setup-google-drive-or-similar) instead.
+
 ### 1. Place the Template
 
-Put this `project-template` directory inside the parent directory where you want your project knowledge bases to live. For example:
+Put this `project-template` directory inside the parent directory where you want your project knowledge base to live. For example:
 
 ```
-C:\Users\you\Documents\KnowledgeBases\project-template\     (Windows)
-/home/you/KnowledgeBases/project-template/                   (Linux)
-~/KnowledgeBases/project-template/                           (macOS)
+C:\Users\you\Documents\KnowledgeBase\project-template\      (Windows)
+/home/you/KnowledgeBase/project-template/                    (Linux)
+~/KnowledgeBase/project-template/                            (macOS)
 ```
 
 The template stays here as a reference. When you (or your agent) start a new project, the agent copies the template directory, renames it, and fills in the files from your conversation.
@@ -27,17 +29,17 @@ The template stays here as a reference. When you (or your agent) start a new pro
 Your agent needs to know where KB directories live and how to use them. Add the following to your agent's persistent instructions, replacing `<YOUR_KB_PATH>` with your actual path:
 
 ```
-Project knowledge bases are stored at <YOUR_KB_PATH>.
+My project knowledge base is stored at <YOUR_KB_PATH>.
 Each subdirectory is a project KB. The `project-template` directory
 contains the blank template — copy it to create a new project KB.
 To understand any project, start with its DOCUMENT-MAP.md — it indexes
 all files and describes when to load each one.
 ```
 
-For example, a Windows user with knowledge bases in their Documents folder would use:
+For example, a Windows user with their knowledge base in their Documents folder would use:
 
 ```
-Project knowledge bases are stored at C:\Users\jane\Documents\KnowledgeBases.
+My project knowledge base is stored at C:\Users\jane\Documents\KnowledgeBase.
 Each subdirectory is a project KB. The `project-template` directory
 contains the blank template — copy it to create a new project KB.
 To understand any project, start with its DOCUMENT-MAP.md — it indexes
@@ -58,6 +60,103 @@ Each project KB directory can also serve as a **Claude Project** — either as a
 
 - **Chat Projects (claude.ai / Claude Desktop):** Create a project and upload the KB directory's files to the project knowledge base, or add `00-project-brief.md` as project instructions. See the [Projects guide](https://support.claude.com/en/articles/9519177-how-can-i-create-and-manage-projects).
 - **Cowork Projects (Claude Desktop):** Cowork can create projects directly from local folders on your computer. Point it at a KB directory and it becomes a Cowork project with its own instructions, context, and memory. See [Organize tasks with projects in Cowork](https://support.claude.com/en/articles/14116274-organize-your-tasks-with-projects-in-claude-cowork) and [Getting started with Cowork](https://support.claude.com/en/articles/13345190-get-started-with-claude-cowork).
+
+## Alternative Setup: Google Drive or Similar
+
+When the agent cannot reach a folder on your computer, the knowledge base can live in Google Drive, and the agent reaches it through the Google Drive connector. This is the setup for claude.ai in a browser. The directory structure, the loading tiers, and the file roles are the same as everywhere else in this document. What changes is how files are found, how they are updated, and what format deliverables take.
+
+The KB documents stay plain Markdown in Drive. That keeps them readable by any tool, and it means the same Drive folder can also be synced to a computer and used by a local agent with the instructions in [Setup](#setup).
+
+This section is written for Google Drive. The approach very likely carries over to other cloud storage that has a Claude connector, but working out the details for your service is up to you. The one hard requirement is a connector that can create, rename, and trash files; a read-only connector cannot hold a knowledge base. Replace the connection steps with your service's own, and the Google file types for deliverables with your service's native formats.
+
+### 1. Put the Template in Drive
+
+Create a folder in Google Drive to hold your knowledge base (for example `KnowledgeBase`) and upload this `project-template` folder into it. If you have the template as a zip, unpack it first and upload the folder: Drive stores a zip as a single file and does not unpack it. After the upload, check that the files are still `.md` files and were not converted to Google Docs.
+
+Use the Google account that should own this knowledge, either a personal account or your company's Google Workspace account. The agent signs in as that account and can reach only the files it can open.
+
+### 2. Connect Google Drive
+
+1. In claude.ai, go to **Customize > Connectors**, find **Google Drive**, and select **Connect**.
+2. Sign in to the Google account that holds the KB folder and grant the requested permissions. A company account signs in the way it normally does, including through company single sign-on.
+3. In each conversation that uses a knowledge base, select **+** in the message box, select **Connectors**, and turn **Google Drive** on. The connection is made once; the toggle is per conversation.
+
+On Team and Enterprise plans, Google Drive does not appear in the connector list until an Owner adds it for the organization. Each member then connects their own Google account. See Anthropic's [Google Drive connector guide](https://claude.com/docs/connectors/google/drive) and [Use Google Workspace connectors](https://support.claude.com/en/articles/10166901-use-google-workspace-connectors) for details.
+
+### 3. Configure Your Agent
+
+Add the following to your **Profile Instructions**, or to a **Project's instructions** to scope it to one project, replacing `<YOUR_KB_FOLDER>` with the name of your folder (for example `KnowledgeBase`). Use it in place of the block in [Setup](#2-configure-your-agent), not in addition to it. The agent reads these instructions in every conversation but does not reload this README, so the block carries the working rules in full.
+
+```
+My project knowledge base is stored in Google Drive, in the folder
+"<YOUR_KB_FOLDER>". Reach it with the Google Drive connector. If more
+than one folder has that name, ask me which one. Each sub-folder is one
+project's KB. The `project-template` folder contains the blank template;
+its README.md explains how to create a new project KB from it.
+To understand any project, start with its DOCUMENT-MAP.md, which indexes
+all files and describes when to load each one.
+
+If the Google Drive connector is not available in this conversation,
+tell me and stop. Do not work from memory or create local files instead.
+
+FINDING AND NAMING FILES
+- Refer to KB files by name and path (for example `plans/api-design.md`),
+  never by Drive link or file ID. An updated file gets a new ID, so its
+  old link stops working.
+- Drive allows two items with the same name in one folder. Before you
+  create or rename any file or folder, list the destination folder and
+  compare names ignoring upper and lower case. If the name is already
+  there, do not create a second one: update the existing file, or ask me.
+- Create a new file directly under its final name, after that check.
+
+UPDATING A MARKDOWN FILE
+The connector cannot change the content of an existing file, so every
+edit, however small, replaces the whole file. Collect the changes for one
+file into one replacement, then:
+1. Read the current file from Drive, in full, right before you change
+   it. Make the change in your own working copy.
+2. Create the new version in the same folder as `<name>.md.new`, as
+   plain Markdown text, not converted to a Google Doc.
+3. Read `<name>.md.new` back from Drive and confirm it is complete and
+   matches your working copy. If it does not, fix it before going on.
+4. Only then move the old `<name>.md` to the trash.
+5. Rename `<name>.md.new` to `<name>.md`.
+6. List the folder and confirm it holds exactly one `<name>.md` and no
+   `.new` file.
+I approve the trash in step 4 as part of this procedure. It is the only
+time you may trash a KB file without asking me first. To archive or
+relocate a file, move it; do not recreate it.
+
+If you find a `.md.new` file you did not just create, an earlier update
+was interrupted. If the original is missing, the `.new` file had already
+been checked: rename it into place and tell me. If the original is still
+there, compare the two and ask me which to keep.
+
+DELIVERABLES
+Create finished deliverables under `output/` as native Google files
+unless I ask for another format: a Google Doc for a written document, a
+Google Sheet for tabular data, Google Slides for a presentation. Change
+an existing Google file in place so its link stays the same. If you
+cannot edit it in place, tell me instead of creating a second copy.
+The KB documents themselves (the top-level files, `plans/`, `reference/`,
+`ongoing/`, `journal/`, `scratch/`) stay Markdown.
+```
+
+### Why Updates Work This Way
+
+The Drive connector can create, rename, move, and trash a file, but it cannot change the content of a file that already exists. An edit to a Markdown document is therefore a replacement, and the procedure in the block is ordered so that there is never a moment without a complete copy: the new version is written and read back before the old one is touched.
+
+- **Links to KB documents do not survive an update.** The replacement is a new file with a new ID. This is why the block says to refer to files by name and path, which is also how `DOCUMENT-MAP.md` already refers to them.
+- **Names are not unique in Drive.** Two files called `02-status.md`, or `02-status.md` and `02-Status.md`, can sit in the same folder, and an agent that finds two cannot tell which is live. The case-insensitive check before every create and rename is what prevents it.
+- **Old versions go to Drive's trash.** You can restore them from there until Drive deletes them, 30 days after they were trashed. The agent cannot restore a trashed file itself, which is the reason it checks the new version first.
+- **Each update asks for approval three times by default**, once each for the create, the trash, and the rename. Under **Customize > Connectors > Google Drive > Tool permissions**, each tool can be set to **Always allow**, **Needs approval**, or **Blocked**. Allowing create and rename while leaving trash on **Needs approval** cuts this to one prompt per update, at the step that matters. On Team and Enterprise plans, Owners decide whether members may skip approvals.
+- **One conversation at a time per file.** Two conversations that update the same document replace each other's work, because each writes back the whole file it read.
+
+### Deliverables as Google Files
+
+Finished deliverables in `output/` default to native Google Docs, Sheets, and Slides, because the people you share them with can open, comment on, and edit them directly in Drive. Unlike the Markdown documents, a native Google file can be changed in place and keeps its link. Editing an existing Google file from the chat is a separate capability from the Drive connector and may not be available in every conversation or plan; where it is not, Drive can still create the file but cannot change it afterward, and the block tells the agent to say so rather than leave you with two copies.
+
+The KB documents themselves are deliberately not Google Docs. Converting Markdown to a Doc and back tends to damage code blocks, tables, and formatting, and it would tie the knowledge base to one vendor's editor.
 
 ---
 
@@ -211,6 +310,7 @@ When you produce knowledge worth keeping:
 - When something is past, archive it (see Archiving): move it to the `archive/` beside it, drop its `DOCUMENT-MAP.md` row, add an `ARCHIVE-MAP.md` row.
 - Update `02-status.md` when phase status changes.
 - Use `scratch/` for intermediate work that might graduate later.
+- If the KB lives in Google Drive or similar cloud storage, follow the update procedure and deliverable formats in [Alternative Setup: Google Drive or Similar](#alternative-setup-google-drive-or-similar).
 
 ## Design Principles
 
