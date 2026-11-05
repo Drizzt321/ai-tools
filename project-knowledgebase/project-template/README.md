@@ -236,7 +236,7 @@ Index of everything archived: where each item was, where it is now, when and why
 
 ### Archiving
 
-Anything completed, superseded, or otherwise past — a finished plan, a review of merged work, scratch from a closed task — moves into an `archive/` subdirectory beside it: `plans/archive/`, `reviews/archive/`, `scratch/archive/`, and so on. Any directory may have one; create it when first needed. On each move, remove the file's row from `DOCUMENT-MAP.md` and add a row to `ARCHIVE-MAP.md`. Archive rather than delete: archived files cost nothing to keep, and they record why things are the way they are. Delete only what has no value as history, such as regenerable build output or checked-out copies of code.
+Anything completed, superseded, or otherwise past — a finished plan, a review of merged work, scratch from a closed task — moves into an `archive/` subdirectory beside it: `plans/archive/`, `reviews/archive/`, `scratch/archive/`, and so on. Any directory may have one; create it when first needed. On each move, remove the file's row from `DOCUMENT-MAP.md`, add a row to `ARCHIVE-MAP.md`, and update every reference to the old path in the live files (search the KB for it). History can keep the old path (`journal/`, archived files, past entries in `02-status.md`), since `ARCHIVE-MAP.md` resolves it. Archive rather than delete: archived files cost nothing to keep, and they record why things are the way they are. Delete only what has no value as history, such as regenerable build output or checked-out copies of code.
 
 ### plans/
 
@@ -307,7 +307,7 @@ When you produce knowledge worth keeping:
 - Finished deliverables go in `output/` (documents, diagrams, images, data as appropriate).
 - Decisions go in `03-decisions.md` (brief entry) with detailed analysis linked from `plans/` or `reference/`.
 - Update `DOCUMENT-MAP.md` when adding new files.
-- When something is past, archive it (see Archiving): move it to the `archive/` beside it, drop its `DOCUMENT-MAP.md` row, add an `ARCHIVE-MAP.md` row.
+- When something is past, archive it (see Archiving): move it to the `archive/` beside it, drop its `DOCUMENT-MAP.md` row, add an `ARCHIVE-MAP.md` row, and update references to it in the live files.
 - Update `02-status.md` when phase status changes.
 - Use `scratch/` for intermediate work that might graduate later.
 - If the KB lives in Google Drive or similar cloud storage, follow the update procedure and deliverable formats in [Alternative Setup: Google Drive or Similar](#alternative-setup-google-drive-or-similar).

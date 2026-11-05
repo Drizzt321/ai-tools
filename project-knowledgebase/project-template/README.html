@@ -466,7 +466,7 @@ The KB documents themselves (the top-level files, `plans/`, `reference/`,
 
 <div class="file-role">
   <h3>Archiving</h3>
-  <p>Anything completed, superseded, or otherwise past &mdash; a finished plan, a review of merged work, scratch from a closed task &mdash; moves into an <code>archive/</code> subdirectory beside it: <code>plans/archive/</code>, <code>reviews/archive/</code>, <code>scratch/archive/</code>, and so on. Any directory may have one; create it when first needed. On each move, remove the file's row from <code>DOCUMENT-MAP.md</code> and add a row to <code>ARCHIVE-MAP.md</code>. Archive rather than delete: archived files cost nothing to keep, and they record why things are the way they are. Delete only what has no value as history, such as regenerable build output or checked-out copies of code.</p>
+  <p>Anything completed, superseded, or otherwise past &mdash; a finished plan, a review of merged work, scratch from a closed task &mdash; moves into an <code>archive/</code> subdirectory beside it: <code>plans/archive/</code>, <code>reviews/archive/</code>, <code>scratch/archive/</code>, and so on. Any directory may have one; create it when first needed. On each move, remove the file's row from <code>DOCUMENT-MAP.md</code>, add a row to <code>ARCHIVE-MAP.md</code>, and update every reference to the old path in the live files (search the KB for it). History can keep the old path (<code>journal/</code>, archived files, past entries in <code>02-status.md</code>), since <code>ARCHIVE-MAP.md</code> resolves it. Archive rather than delete: archived files cost nothing to keep, and they record why things are the way they are. Delete only what has no value as history, such as regenerable build output or checked-out copies of code.</p>
 </div>
 
 <div class="file-role">
@@ -545,7 +545,7 @@ The KB documents themselves (the top-level files, `plans/`, `reference/`,
   <li>Finished deliverables go in <code>output/</code> (documents, diagrams, images, data as appropriate).</li>
   <li>Decisions go in <code>03-decisions.md</code> (brief entry) with detailed analysis linked from <code>plans/</code> or <code>reference/</code>.</li>
   <li>Update <code>DOCUMENT-MAP.md</code> when adding new files.</li>
-  <li>When something is past, archive it (see Archiving): move it to the <code>archive/</code> beside it, drop its <code>DOCUMENT-MAP.md</code> row, add an <code>ARCHIVE-MAP.md</code> row.</li>
+  <li>When something is past, archive it (see Archiving): move it to the <code>archive/</code> beside it, drop its <code>DOCUMENT-MAP.md</code> row, add an <code>ARCHIVE-MAP.md</code> row, and update references to it in the live files.</li>
   <li>Update <code>02-status.md</code> when phase status changes.</li>
   <li>Use <code>scratch/</code> for intermediate work that might graduate later.</li>
   <li>If the KB lives in Google Drive or similar cloud storage, follow the update procedure and deliverable formats in <a href="#alternative-setup-google-drive-or-similar">Alternative Setup: Google Drive or Similar</a>.</li>

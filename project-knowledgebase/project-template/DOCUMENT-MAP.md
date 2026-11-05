@@ -63,4 +63,4 @@ Completed and superseded material lives in `archive/` subdirectories and is inde
 
 ## Maintenance
 
-When adding a new file to the project, update this document map. When archiving a file, remove its row here and add one to `ARCHIVE-MAP.md`.
+When adding a new file to the project, update this document map. When archiving a file, remove its row here, add one to `ARCHIVE-MAP.md`, and update references to its old path in the live files.
