@@ -125,7 +125,7 @@ discovery all come for free from the base class and the dispatcher.
 ## Development
 
 ```bash
-cd vendor-clients/gemini && bun install   # install the (only) vendor with deps
-bunx tsc --noEmit                          # typecheck the component (run from vendor-clients/)
+cd vendor-clients/gemini && bun install   # install the (only) vendor with deps, incl. the pinned typescript
+./gemini/node_modules/.bin/tsc --noEmit -p .   # typecheck the component (run from vendor-clients/)
 bun test                                   # run the dispatcher/contract tests
 ```
