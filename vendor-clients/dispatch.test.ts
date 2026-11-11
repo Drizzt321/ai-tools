@@ -70,6 +70,12 @@ describe("resolveVendor (pure)", () => {
   test("knownVendors lists gemini", () => {
     expect(knownVendors()).toContain("gemini");
   });
+  test("known vendor mistral -> a loader function", () => {
+    expect(typeof resolveVendor("mistral")).toBe("function");
+  });
+  test("knownVendors lists mistral", () => {
+    expect(knownVendors()).toContain("mistral");
+  });
 });
 
 describe("dispatch error/help branches (returnable, no exit)", () => {
@@ -99,6 +105,11 @@ describe("dispatch error/help branches (returnable, no exit)", () => {
     const flags = gemini!.cliOpts.map((o) => o.flag);
     expect(flags).toContain("--prompt");   // common
     expect(flags).toContain("--timeout");  // gemini vendor-specific
+    const mistral = j.vendors.find((v) => v.name === "mistral");
+    expect(mistral).toBeDefined();
+    const mflags = mistral!.cliOpts.map((o) => o.flag);
+    expect(mflags).toContain("--prompt");  // common
+    expect(mflags).toContain("--timeout"); // mistral vendor-specific
   });
 
   test("bare --help (no vendor) -> exit 0 + common help + vendor-routing pointer", async () => {

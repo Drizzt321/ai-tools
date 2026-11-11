@@ -2,8 +2,8 @@
 
 A small, generic toolset for calling LLM vendors from the command line and getting back **structured,
 typed output** -- with a uniform interface across vendors, built-in discovery, per-vendor rate-limit
-budgeting, and a local call trail. One vendor ships today (`gemini`); adding more is a small, well-defined
-task (see "Adding a vendor").
+budgeting, and a local call trail. Two vendors ship today (`gemini`, `mistral`); adding more is a small,
+well-defined task (see "Adding a vendor").
 
 - **How to invoke it** (the dispatcher, flags, discovery, output contract, setup-required handling):
   see **[`USAGE.md`](./USAGE.md)**.
@@ -46,9 +46,12 @@ vendor-clients/
     ProviderCli.ts     <- the shared CLI runner + help rendering
     ProviderLog.ts     <- the call trail
     config.ts          <- cross-vendor paths + .env hydration
-  gemini/              <- a vendor client (template for new ones)
+  gemini/              <- a vendor client on a vendor SDK (template for new ones)
     GeminiClient.ts    GeminiBudget.ts    gemini-tier-limits.json
     package.json       tsconfig.json      SETUP.md
+  mistral/             <- a vendor client on plain fetch (no deps), behind a transport seam
+    MistralClient.ts   MistralTransport.ts   mistral-models.json
+    MistralClient.test.ts                    SETUP.md
 ```
 
 ## Adding a vendor

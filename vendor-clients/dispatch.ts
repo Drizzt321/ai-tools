@@ -35,6 +35,7 @@ import { renderCommonHelp } from "./core/ProviderCli.ts";
  */
 export const VENDORS: Record<string, () => Promise<ProviderClientClass>> = {
   gemini: async () => (await import("./gemini/GeminiClient.ts")).GeminiClient,
+  mistral: async () => (await import("./mistral/MistralClient.ts")).MistralClient,
 };
 
 export function knownVendors(): string {
