@@ -1,6 +1,6 @@
-# Review -- dispatch a plan/code review to a non-Anthropic provider
+# Review -- dispatch a plan/code review to a provider from a different vendor
 
-This workflow is executed by the **calling agent**. It packages a review payload, dispatches it to a non-Anthropic vendor (via `dispatch.ts <vendor>`; default `gemini`), collects the typed JSON, and reshapes it into the report block. The calling agent never reviews the subject itself.
+This workflow is executed by the **calling agent**. It packages a review payload, dispatches it to a vendor other than the one whose model produced the work (via `dispatch.ts <vendor>`; vendor resolved per SKILL.md's "Choosing the vendor" -- no built-in default), collects the typed JSON, and reshapes it into the report block. The calling agent never reviews the subject itself.
 
 `<vendor-clients>` is the toolset directory, resolved per SKILL.md's "Locating the toolset" (env var `VENDOR_CLIENTS_HOME`, else `../vendor-clients/`, else ask); `<skill>` is this skill's directory. Once located, the mechanics of invoking the toolset (the `dispatch.ts` entry point, flags, output contract, vendor discovery, setup-required handling) live in `<vendor-clients>/USAGE.md`. This workflow covers only the review-specific procedure.
 
@@ -10,8 +10,9 @@ This workflow is executed by the **calling agent**. It packages a review payload
 |-------|--------|-------|
 | `mode` | `plan` \| `test-spec` \| `code` | `plan` = plan sections before building; `test-spec` = a test specification / coverage matrix reviewed against the source spec it derives from (end-stage planning, no code yet); `code` = a diff + the criteria it was meant to satisfy + verification evidence after a change. |
 | `subject` | a plan/spec path; OR the test spec + its source spec section(s) as text; OR the diff + criteria list + verification evidence as text | What gets reviewed. |
-| `provider` | default `gemini` | Any vendor from `dispatch.ts --list-vendors`. A vendor that isn't installed/configured returns a `setup-required`/`skipped` ErrorVerdict -- surface it. |
-| `thinking` | default `medium` for `plan` and `test-spec`, `low` for `code` | Override to `medium` for cross-file diffs; keep `code` at `medium` or below. |
+| `provider` | named by the caller; else `CROSS_VENDOR_REVIEW_VENDOR`; else ask the user | Supported today: `gemini`, `mistral` (live list: `dispatch.ts --list-vendors`). Must differ from the vendor that produced the work. A vendor that isn't installed/configured returns a `setup-required`/`skipped` ErrorVerdict -- surface it. |
+| `model` | named by the caller; else `CROSS_VENDOR_REVIEW_MODEL` when `provider` is `CROSS_VENDOR_REVIEW_VENDOR`; else omitted | Omitted -> the vendor client's own default model. |
+| `thinking` | default `medium` for `plan` and `test-spec`, `low` for `code` | Override to `medium` for cross-file diffs; keep `code` at `medium` or below. If the model does not offer the level (`--list-thinking-modes --model <m>`), use the highest offered level below it (else the lowest offered); omit `--thinking` for a model with `kind: "none"`. |
 | `dispatch` | default `async` | `async` = background job (collect later). `sync` = block and collect inline (use only when the review IS the current step). |
 
 ## Steps
@@ -58,14 +59,15 @@ Build the command (the dispatcher routes to the chosen vendor; see `USAGE.md` fo
 
 ```bash
 bun <vendor-clients>/dispatch.ts <provider> \
+  [--model <model>] \
   --subject /tmp/cvr-subject-<short-slug>.md \
   --system-file <skill>/References/rubric-<mode>.md \
   --responseSchema <skill>/review-schema.json \
-  --thinking <medium for plan | low for code> \
+  --thinking <medium for plan | low for code, stepped down if the model lacks it> \
   --caller crossvendorreview
 ```
 
-(`<provider>` defaults to `gemini`. The flags here are the common toolset flags documented in `USAGE.md`; this step only fixes which review-specific values to pass.)
+(`<provider>` and `<model>` come from the Inputs table -- never a silent default. The flags here are the common toolset flags documented in `USAGE.md`; this step only fixes which review-specific values to pass.)
 
 - **`async` (default):** run this as a background job. It returns immediately; keep working. The CLI bootstraps deps, resolves the key, gates the budget, locks the model, and writes the call trail itself -- do not pre-check any of that.
 - **`sync`:** run the same command in the foreground and read stdout directly.
