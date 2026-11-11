@@ -89,6 +89,8 @@ function catalog(): Catalog {
 const NO_THINKING: ThinkingModes = { kind: "none", default: "", available: [] };
 
 function thinkingModesFor(model: string): ThinkingModes {
+  // kind "none" is reachable only for an unknown model (or a future catalog entry with no
+  // reasoning control); every current catalog model has documented levels.
   return catalog().models[model]?.thinking ?? NO_THINKING;
 }
 
@@ -152,17 +154,23 @@ function parseRetryAfterMs(header: string | undefined): number | undefined {
   return Math.max(0, at - Date.now());
 }
 
-/** A short human-readable detail from a Mistral error body (message/param, or FastAPI detail). */
+/**
+ * A short human-readable detail from a Mistral error body. Shapes seen: a string
+ * `message` (+ optional `param`); a validation `detail` list either top-level or nested
+ * inside `message` (live 422s nest it: `{"message":{"detail":[...]}}`); else the raw text.
+ */
 function errorDetail(res: TransportResponse): string {
   const j = res.json as { message?: unknown; param?: unknown; detail?: unknown } | null;
+  const nested = j && j.message && typeof j.message === "object" ? (j.message as { detail?: unknown }).detail : undefined;
+  const detailList = j && Array.isArray(j.detail) ? j.detail : (Array.isArray(nested) ? nested : undefined);
   let detail = "";
   if (j && typeof j.message === "string") {
     detail = j.message;
     if (typeof j.param === "string" && j.param !== "") {
       detail += ` (param: ${j.param})`;
     }
-  } else if (j && Array.isArray(j.detail)) {
-    detail = j.detail
+  } else if (detailList) {
+    detail = detailList
       .map((d) => {
         const item = d as { loc?: unknown; msg?: unknown };
         const loc = Array.isArray(item.loc) ? item.loc.join(".") : "";

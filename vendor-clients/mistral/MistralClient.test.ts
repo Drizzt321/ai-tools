@@ -146,8 +146,12 @@ describe("query surface (no network, no key)", () => {
     expect(client().thinkingModes("zai-glm-5-3-flash")).toEqual({ kind: "level", default: "low", available: ["low", "high", "max"] });
   });
 
-  test("thinkingModes(deepseek): kind none", () => {
-    expect(client().thinkingModes("deepseek-v4-1-flash-1017").kind).toBe("none");
+  test("thinkingModes(deepseek): level, default low, none|low|high|xhigh|max (live-probed 2026-11-11)", () => {
+    expect(client().thinkingModes("deepseek-v4-1-flash-1017")).toEqual({
+      kind: "level",
+      default: "low",
+      available: ["none", "low", "high", "xhigh", "max"],
+    });
   });
 
   test("thinkingModes(unknown model): kind none rather than a throw", () => {
@@ -268,10 +272,10 @@ describe("failures that must happen before any network call", () => {
     expect(calls.length).toBe(0);
   });
 
-  test("--thinking on a kind:none model (deepseek) -> error; transport not called", async () => {
+  test("--thinking medium on deepseek (not among its levels) -> error; transport not called", async () => {
     setMistralTransport(forbiddenTransport);
     const c = client("--model", "deepseek-v4-1-flash-1017");
-    expectVerdict(await c.call({ userPrompt: "x", thinkingLevel: "high" }), "error");
+    expectVerdict(await c.call({ userPrompt: "x", thinkingLevel: "medium" }), "error");
     expect(calls.length).toBe(0);
   });
 });
@@ -323,10 +327,12 @@ describe("request shape", () => {
     expect(body().reasoning_effort).toBe("low");
   });
 
-  test("kind:none model -> no reasoning_effort field at all", async () => {
+  test("deepseek: default reasoning_effort low; --thinking none is sent as 'none'", async () => {
     setMistralTransport(respondWith(ok("hi")));
     await client("--model", "deepseek-v4-1-flash-1017").call({ userPrompt: "x" });
-    expect("reasoning_effort" in body()).toBe(false);
+    await client("--model", "deepseek-v4-1-flash-1017").call({ userPrompt: "x", thinkingLevel: "none" });
+    expect(body(0).reasoning_effort).toBe("low");
+    expect(body(1).reasoning_effort).toBe("none");
   });
 
   test("no schema -> no response_format; never stream", async () => {
@@ -477,6 +483,33 @@ describe("HTTP status -> verdict", () => {
     };
     const v = expectVerdict(await callWith(res), "error");
     expect(v.reason).toContain("bad value");
+  });
+
+  test("422 with detail nested inside message (Mistral's live shape) -> reason carries the msg", async () => {
+    const res: TransportResponse = {
+      status: 422,
+      headers: {},
+      json: {
+        object: "error",
+        message: { detail: [{ type: "enum", loc: ["body", "reasoning_effort"], msg: "Input should be 'low' or 'high'" }] },
+        type: "invalid_request_error",
+        param: null,
+        code: null,
+      },
+      rawText: "{\"raw\":\"should not be the reason\"}",
+    };
+    const v = expectVerdict(await callWith(res), "error");
+    expect(v.reason).toContain("body.reasoning_effort: Input should be 'low' or 'high'");
+    expect(v.reason).not.toContain("should not be the reason");
+  });
+
+  test("400 invalid args (Mistral's live shape: string message, code) -> error with the message", async () => {
+    const v = expectVerdict(
+      await callWith(httpError(400, { message: "reasoning_effort 'minimal' is not supported for this model", code: "3051" })),
+      "error",
+    );
+    expect(v.anomaly).toBe(true);
+    expect(v.reason).toContain("not supported for this model");
   });
 
   test("429 with Retry-After seconds -> rate-limited, retry_after_ms", async () => {

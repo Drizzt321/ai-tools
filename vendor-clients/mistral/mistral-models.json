@@ -1,5 +1,5 @@
 {
-  "_comment": "Curated Mistral model catalog, read by MistralClient.ts. Ids, context windows and reasoning_effort levels are from docs.mistral.ai (models.md, inference/conversations/reasoning.md), checked 2026-11-11. thinking.default is OUR policy default, applied when the caller passes no --thinking; any documented level can be passed per call. kind 'none' means no reasoning_effort is sent (no documented control). bundle_tokens = context window minus a 100k output/reasoning reserve; the subscription's tokens-per-minute limits are undocumented, so this is a ceiling, not a measured budget.",
+  "_comment": "Curated Mistral model catalog, read by MistralClient.ts. Ids, context windows and reasoning_effort levels are from docs.mistral.ai (models.md, inference/conversations/reasoning.md), checked 2026-11-11; deepseek-v4-1-flash-1017's levels are undocumented and were live-probed the same day (the API lists supported values when it rejects one). thinking.default is OUR policy default, applied when the caller passes no --thinking; any documented level can be passed per call. kind 'none' means no reasoning_effort is sent (no documented control). bundle_tokens = context window minus a 100k output/reasoning reserve; the subscription's tokens-per-minute limits are undocumented, so this is a ceiling, not a measured budget.",
   "default": "mistral-large-4",
   "models": {
     "mistral-large-4": {
@@ -24,7 +24,7 @@
       "lineage": "deepseek",
       "context_tokens": 1000000,
       "bundle_tokens": 900000,
-      "thinking": { "kind": "none", "default": "", "available": [] }
+      "thinking": { "kind": "level", "default": "low", "available": ["none", "low", "high", "xhigh", "max"] }
     }
   }
 }
