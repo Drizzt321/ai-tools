@@ -90,6 +90,42 @@ export interface ThinkingModes {
   max?: number;
 }
 
+/**
+ * Where a model comes from, kept as two separate facts:
+ *   - lineage -- who trained the weights (decides whose "opinion" a call is)
+ *   - host    -- whose infrastructure receives the prompt (decides where the data goes)
+ * They differ when a vendor serves another lab's weights (e.g. z.ai GLM on Mistral).
+ */
+export interface ModelProvenance {
+  lineage: string;
+  host: string;
+}
+
+/** A provider's curated model set: the default, the ids, and each id's provenance. */
+export interface ModelSet {
+  default: string;
+  available: string[];
+  /** Keyed by model id; one entry per model in the vendor's curated catalog. */
+  models: Record<string, ModelProvenance>;
+}
+
+/**
+ * Check that every model in a catalog names a non-empty string `lineage` and `host`.
+ * Returns a message naming the first offending model and field, or null when all pass.
+ * Pure (no I/O) so each vendor's catalog loader can wrap it in its own error type.
+ */
+export function provenanceProblem(models: Record<string, unknown>): string | null {
+  for (const [id, entry] of Object.entries(models)) {
+    for (const field of ["lineage", "host"] as const) {
+      const value = (entry as Record<string, unknown> | null)?.[field];
+      if (typeof value !== "string" || value.trim() === "") {
+        return `model "${id}" needs a non-empty string "${field}"`;
+      }
+    }
+  }
+  return null;
+}
+
 /** Type guard: is this an ErrorVerdict? */
 export function isErrorVerdict<T extends object>(r: T | ErrorVerdict): r is ErrorVerdict {
   return "verdict" in r;
@@ -312,10 +348,11 @@ export abstract class ProviderClient {
   abstract depsReady(): ErrorVerdict | null;
 
   /**
-   * The provider's curated model set: default + available. Lets a consumer use the default
-   * or fan across the set -- discovering models, not hardcoding them.
+   * The provider's curated model set: default + available, plus each model's lineage and
+   * host. Lets a consumer use the default or fan across the set -- discovering models, not
+   * hardcoding them -- and see whose weights and whose infrastructure each one means.
    */
-  abstract models(): { default: string; available: string[] };
+  abstract models(): ModelSet;
 
   /**
    * The thinking/reasoning modes this provider+model supports. Omit `model` to report the

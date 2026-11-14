@@ -48,7 +48,8 @@ vendor-clients/
     config.ts          <- cross-vendor paths + .env hydration
   gemini/              <- a vendor client on a vendor SDK (template for new ones)
     GeminiClient.ts    GeminiBudget.ts    gemini-tier-limits.json
-    package.json       tsconfig.json      SETUP.md
+    GeminiClient.test.ts                  package.json
+    tsconfig.json      SETUP.md
   mistral/             <- a vendor client on plain fetch (no deps), behind a transport seam
     MistralClient.ts   MistralTransport.ts   mistral-models.json
     MistralClient.test.ts                    SETUP.md
@@ -64,6 +65,10 @@ A new vendor is a directory + a class that implements the contract + one line in
 2. **Implement the class** -- `export class <Vendor>Client extends ProviderClient`:
    - Implement the **abstract members**: `provider` (the stable lowercase id, e.g. `"openai"`), `call`,
      `maxBundleTokens`, `isConfigured`, `depsReady`, `models`, `thinkingModes`.
+   - **`models()` returns a `ModelSet`**, including a `lineage` (who trained the weights) and `host`
+     (whose infrastructure receives the prompt) for every curated model. Keep both in the vendor's
+     catalog JSON, and have the catalog loader reject a model missing either by calling
+     `provenanceProblem()` from `core/ProviderClient.ts`.
    - **Honoring `CallOpts.responseSchema` is vendor-specific -- how you do it depends on the API.**
      `responseSchema` is the caller's *intent* ("return JSON matching this shape"); each `call()` decides
      how to satisfy it:

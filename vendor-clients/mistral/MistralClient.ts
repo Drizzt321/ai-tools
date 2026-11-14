@@ -30,8 +30,8 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { CallOpts, CallResult, ErrorVerdict, ThinkingModes, CliOptSpec } from "../core/ProviderClient.ts";
-import { ProviderClient, CliUsageError } from "../core/ProviderClient.ts";
+import type { CallOpts, CallResult, ErrorVerdict, ThinkingModes, CliOptSpec, ModelSet } from "../core/ProviderClient.ts";
+import { ProviderClient, CliUsageError, provenanceProblem } from "../core/ProviderClient.ts";
 import { loadEnv } from "../core/config.ts";
 import { fetchTransport, type MistralTransport, type TransportResponse } from "./MistralTransport.ts";
 
@@ -56,6 +56,7 @@ export function setMistralTransport(t: MistralTransport | null): void {
 // ---------------------------------------------------------------------------
 interface CatalogModel {
   lineage: string;
+  host: string;
   context_tokens: number;
   bundle_tokens: number;
   thinking: ThinkingModes;
@@ -78,12 +79,25 @@ function catalog(): Catalog {
   } catch (e) {
     throw new Error(`mistral-models.json could not be read or parsed at ${CATALOG_PATH}: ${(e as Error).message}`);
   }
+  catalogCache = validateCatalog(parsed, CATALOG_PATH);
+  return catalogCache;
+}
+
+/**
+ * Check a parsed catalog's shape and return it typed. Throws on a missing "models" object,
+ * a "default" that names no model, or a model without a non-empty lineage and host.
+ * Exported so the shape rules can be tested against fixtures, not just the shipped file.
+ */
+export function validateCatalog(parsed: unknown, source: string): Catalog {
   const c = parsed as Partial<Catalog>;
   if (typeof c.default !== "string" || !c.models || typeof c.models !== "object" || !c.models[c.default]) {
-    throw new Error(`mistral-models.json (${CATALOG_PATH}) needs a "models" object and a "default" naming one of them.`);
+    throw new Error(`mistral-models.json (${source}) needs a "models" object and a "default" naming one of them.`);
   }
-  catalogCache = c as Catalog;
-  return catalogCache;
+  const problem = provenanceProblem(c.models);
+  if (problem !== null) {
+    throw new Error(`mistral-models.json (${source}): ${problem}.`);
+  }
+  return c as Catalog;
 }
 
 const NO_THINKING: ThinkingModes = { kind: "none", default: "", available: [] };
@@ -276,9 +290,13 @@ export class MistralClient extends ProviderClient {
       : { configured: false, reason: `${KEY_VAR} not set (env or a .env file)` };
   }
 
-  models(): { default: string; available: string[] } {
+  models(): ModelSet {
     const c = catalog();
-    return { default: c.default, available: Object.keys(c.models) };
+    const models: ModelSet["models"] = {};
+    for (const [id, m] of Object.entries(c.models)) {
+      models[id] = { lineage: m.lineage, host: m.host };
+    }
+    return { default: c.default, available: Object.keys(c.models), models };
   }
 
   async call(opts: CallOpts): Promise<CallResult | ErrorVerdict> {

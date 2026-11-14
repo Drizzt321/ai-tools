@@ -36,8 +36,8 @@
 import { readFile, writeFile, rename, mkdir, readdir, unlink } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
-import type { ThinkingModes } from "../core/ProviderClient.ts";
-import { CliUsageError } from "../core/ProviderClient.ts";
+import type { ThinkingModes, ModelProvenance } from "../core/ProviderClient.ts";
+import { CliUsageError, provenanceProblem } from "../core/ProviderClient.ts";
 // proper-lockfile is lazy-imported inside withBudgetLock() (its ONLY user) rather
 // than statically here, so this module loads cleanly on a fresh, node_modules-absent
 // machine (a file-sync tool may carry the .ts files but not node_modules). A static
@@ -84,6 +84,10 @@ export interface Budget {
 // per-model RPD the operator recorded from the AI Studio dashboard, or null.
 // ---------------------------------------------------------------------------
 interface ModelLimits {
+  // Who trained the weights, and whose infrastructure receives the prompt. Required on
+  // every model; validateLimitsMap rejects a map without them.
+  lineage: string;
+  host: string;
   rpm?: number | null;
   tpm?: number | null;
   rpd?: number | null;
@@ -127,22 +131,36 @@ function loadLimitsMapSync(): Record<string, ModelLimits> {
         `usually means an incomplete checkout.`,
     );
   }
-  let parsed: { models?: Record<string, ModelLimits> };
+  let parsed: unknown;
   try {
-    parsed = JSON.parse(raw) as { models?: Record<string, ModelLimits> };
+    parsed = JSON.parse(raw);
   } catch (e) {
     throw new CliUsageError(
       `gemini-tier-limits.json is not valid JSON (${LIMITS_MAP_PATH}): ${(e as Error).message}. ` +
         `Fix the file's syntax.`,
     );
   }
-  if (parsed.models === undefined || typeof parsed.models !== "object") {
+  limitsCache = validateLimitsMap(parsed, LIMITS_MAP_PATH);
+  return limitsCache;
+}
+
+/**
+ * Check a parsed limits map's shape and return its models. Throws CliUsageError on a
+ * missing top-level "models" object or a model without a non-empty lineage and host.
+ * Exported so the shape rules can be tested against fixtures, not just the shipped file.
+ */
+export function validateLimitsMap(parsed: unknown, source: string): Record<string, ModelLimits> {
+  const models = (parsed as { models?: unknown } | null)?.models;
+  if (models === undefined || models === null || typeof models !== "object") {
     throw new CliUsageError(
-      `gemini-tier-limits.json (${LIMITS_MAP_PATH}) is missing a top-level "models" object.`,
+      `gemini-tier-limits.json (${source}) is missing a top-level "models" object.`,
     );
   }
-  limitsCache = parsed.models;
-  return limitsCache;
+  const problem = provenanceProblem(models as Record<string, unknown>);
+  if (problem !== null) {
+    throw new CliUsageError(`gemini-tier-limits.json (${source}): ${problem}.`);
+  }
+  return models as Record<string, ModelLimits>;
 }
 
 /** The believed RPD for a model from the map (null if not present). */
@@ -153,6 +171,15 @@ export async function mapRpd(model: string): Promise<number | null> {
 /** The curated set of model names in the limits map (the models we call). */
 export function mapModelNames(): string[] {
   return Object.keys(loadLimitsMapSync());
+}
+
+/** Each mapped model's lineage and host, keyed by model id. */
+export function mapProvenance(): Record<string, ModelProvenance> {
+  const out: Record<string, ModelProvenance> = {};
+  for (const [id, m] of Object.entries(loadLimitsMapSync())) {
+    out[id] = { lineage: m.lineage, host: m.host };
+  }
+  return out;
 }
 
 /**

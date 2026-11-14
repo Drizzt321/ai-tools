@@ -11,7 +11,7 @@
  * OUTPUT (single line of JSON to STDOUT, exit 0; diagnostics to STDERR):
  *   call success:          CallResult     {"text","json?","tokensUsed","modelUsed","notes?"}
  *   call non-success:      ErrorVerdict   {"verdict","reason",...}
- *   --list-models:         {"default","available"}
+ *   --list-models:         ModelSet       {"default","available","models":{id:{"lineage","host"}}}
  *   --list-thinking-modes: ThinkingModes  {"kind","default","available",["min","max"]}
  *
  * Exit codes: 0 = handled (verdict carries success/failure); 2 = usage error
@@ -23,7 +23,7 @@
  */
 
 import { readFile } from "node:fs/promises";
-import type { CallOpts } from "./ProviderClient.ts";
+import type { CallOpts, ModelSet } from "./ProviderClient.ts";
 import { ProviderClient } from "./ProviderClient.ts";
 import { logProviderCall } from "./ProviderLog.ts";
 import { providerCallsDir } from "./config.ts";
@@ -75,7 +75,8 @@ export function renderCommonHelp(invocation: string, withCommonBanner = false): 
     "  --no-log                 Do NOT write this call to the provider-calls trail.",
     "",
     "QUERY MODES (no model call; print JSON and exit 0)",
-    "  --list-models            Print {\"default\",\"available\"}.",
+    "  --list-models            Print {\"default\",\"available\",\"models\"}; models maps each id",
+    "                           to {\"lineage\",\"host\"} (who trained it, who serves it).",
     "  --list-thinking-modes    Print {\"kind\",\"default\",\"available\",[\"min\",\"max\"]}.",
     "                           Accepts --model <name> to target a specific model.",
     "  --help | -h              Print help and exit 0.",
@@ -92,6 +93,17 @@ export function renderCommonHelp(invocation: string, withCommonBanner = false): 
     "  0  handled -- the verdict in the JSON carries success/failure.",
     "  2  usage error (unknown flag, no --prompt/--subject, unreadable --subject/--responseSchema file).",
   ].join("\n");
+}
+
+/** One help line per model: id, then "<lineage> weights, hosted by <host>", default marked. */
+function renderModelLines(models: ModelSet): string[] {
+  const width = Math.max(...models.available.map((id) => id.length));
+  return models.available.map((id) => {
+    const p = models.models[id];
+    const provenance = p ? `${p.lineage} weights, hosted by ${p.host}` : "(lineage and host not curated)";
+    const mark = id === models.default ? " (default)" : "";
+    return `  ${id.padEnd(width)}  ${provenance}${mark}`;
+  });
 }
 
 /**
@@ -121,7 +133,8 @@ export function renderHelp(client: ProviderClient, invocation: string): string {
     "",
     `=== VENDOR: ${client.provider} (specific to this vendor) ===`.padEnd(76, "="),
     "",
-    `Models -- default: ${models.default}; available: ${models.available.join(", ")}`,
+    "Models (lineage = who trained the weights; host = whose infrastructure gets the prompt)",
+    ...renderModelLines(models),
     `Thinking -- ${thinkingLine}`,
   ];
   if (vendorOpts.length > 0) {

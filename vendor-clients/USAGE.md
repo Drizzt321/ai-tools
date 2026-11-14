@@ -50,7 +50,12 @@ A vendor's client file can also be invoked directly (`bun <vendor-clients>/<vend
   including its VENDOR-SPECIFIC OPTIONS section.
 - **`bun <vendor-clients>/dispatch.ts <vendor> --list-models`** / **`--list-thinking-modes`** -- that
   vendor's model set / reasoning modes, as JSON. (All discovery/query modes are no-network and need no
-  credentials.)
+  credentials.) `--list-models` prints `{"default", "available", "models"}`, where `models` maps each
+  id to `{"lineage", "host"}`: **lineage** is who trained the weights (whose opinion the call is),
+  **host** is whose infrastructure receives the prompt (where the data goes). They differ when a vendor
+  serves another lab's model, e.g. `zai-glm-5-3` is z.ai weights hosted by Mistral. `--help` shows the
+  same per model. Neither is repeated on `CallResult` or the trail: the vendor plus `modelUsed`
+  identifies the model, and the catalog maps it.
 
 ## Flags
 

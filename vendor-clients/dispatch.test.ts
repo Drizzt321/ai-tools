@@ -26,6 +26,7 @@ import {
   type ErrorVerdict,
   type ThinkingModes,
   type CliOptSpec,
+  type ModelSet,
 } from "./core/ProviderClient.ts";
 import { GeminiClient } from "./gemini/GeminiClient.ts";
 
@@ -205,8 +206,8 @@ describe("vendor-token splice (stub vendor)", () => {
     depsReady(): ErrorVerdict | null {
       return null;
     }
-    models(): { default: string; available: string[] } {
-      return { default: "stub-model", available: ["stub-model"] };
+    models(): ModelSet {
+      return { default: "stub-model", available: ["stub-model"], models: { "stub-model": { lineage: "stub", host: "stub" } } };
     }
     thinkingModes(): ThinkingModes {
       return { kind: "none", default: "", available: [] };

@@ -31,7 +31,9 @@ that off in the console. Do not send anything private on a key where training is
 ## 3. Models and reasoning
 
 `--list-models` prints the curated set from `mistral-models.json`: Mistral's own models and the
-third-party models Mistral serves on the same endpoint. Which ones a given key can reach depends on
+third-party models Mistral serves on the same endpoint. Each model lists its `lineage` (who trained
+the weights: `mistral`, `z.ai`, `deepseek`) and its `host` (always `mistral`: the third-party models
+run on Mistral's own infrastructure, so prompts go to Mistral either way). Which ones a given key can reach depends on
 the account's plan; a model outside it returns a `setup-required` verdict naming the model (HTTP 403).
 
 `--thinking` maps to Mistral's `reasoning_effort`. Each model has its own documented levels and a

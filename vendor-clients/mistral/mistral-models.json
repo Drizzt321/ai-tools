@@ -1,27 +1,31 @@
 {
-  "_comment": "Curated Mistral model catalog, read by MistralClient.ts. Ids, context windows and reasoning_effort levels are from docs.mistral.ai (models.md, inference/conversations/reasoning.md), checked 2026-11-11; deepseek-v4-1-flash-1017's levels are undocumented and were live-probed the same day (the API lists supported values when it rejects one). thinking.default is OUR policy default, applied when the caller passes no --thinking; any documented level can be passed per call. kind 'none' means no reasoning_effort is sent (no documented control). bundle_tokens = context window minus a 100k output/reasoning reserve; the subscription's tokens-per-minute limits are undocumented, so this is a ceiling, not a measured budget.",
+  "_comment": "Curated Mistral model catalog, read by MistralClient.ts. Ids, context windows and reasoning_effort levels are from docs.mistral.ai (models.md, inference/conversations/reasoning.md), checked 2026-11-11; deepseek-v4-1-flash-1017's levels are undocumented and were live-probed the same day (the API lists supported values when it rejects one). thinking.default is OUR policy default, applied when the caller passes no --thinking; any documented level can be passed per call. kind 'none' means no reasoning_effort is sent (no documented control). bundle_tokens = context window minus a 100k output/reasoning reserve; the subscription's tokens-per-minute limits are undocumented, so this is a ceiling, not a measured budget. Every model names two separate facts, both required (the loader throws without them): lineage = who trained the weights (whose opinion a call is), host = whose infrastructure receives the prompt (where the data goes). Here they differ: the z.ai and DeepSeek models are other labs' weights served from Mistral's own infrastructure (maintainer-confirmed 2026-11-13), so lineage varies and host is always mistral.",
   "default": "mistral-large-4",
   "models": {
     "mistral-large-4": {
       "lineage": "mistral",
+      "host": "mistral",
       "context_tokens": 1000000,
       "bundle_tokens": 900000,
       "thinking": { "kind": "level", "default": "high", "available": ["low", "medium", "high"] }
     },
     "zai-glm-5-3": {
       "lineage": "z.ai",
+      "host": "mistral",
       "context_tokens": 1000000,
       "bundle_tokens": 900000,
       "thinking": { "kind": "level", "default": "high", "available": ["low", "high", "max"] }
     },
     "zai-glm-5-3-flash": {
       "lineage": "z.ai",
+      "host": "mistral",
       "context_tokens": 1000000,
       "bundle_tokens": 900000,
       "thinking": { "kind": "level", "default": "low", "available": ["low", "high", "max"] }
     },
     "deepseek-v4-1-flash-1017": {
       "lineage": "deepseek",
+      "host": "mistral",
       "context_tokens": 1000000,
       "bundle_tokens": 900000,
       "thinking": { "kind": "level", "default": "low", "available": ["none", "low", "high", "xhigh", "max"] }

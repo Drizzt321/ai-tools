@@ -22,7 +22,7 @@
 
 import { join } from "node:path";
 import { existsSync } from "node:fs";
-import type { CallOpts, CallResult, ErrorVerdict, ThinkingModes, CliOptSpec } from "../core/ProviderClient.ts";
+import type { CallOpts, CallResult, ErrorVerdict, ThinkingModes, CliOptSpec, ModelSet } from "../core/ProviderClient.ts";
 import { ProviderClient, CliUsageError } from "../core/ProviderClient.ts";
 import { loadEnv } from "../core/config.ts";
 import {
@@ -32,6 +32,7 @@ import {
   record429,
   maxBundleTokensFor,
   mapModelNames,
+  mapProvenance,
   thinkingModesFor,
 } from "./GeminiBudget.ts";
 
@@ -237,12 +238,13 @@ export class GeminiClient extends ProviderClient {
   }
 
   /** Curated model set: the default + the models in the limits map. */
-  models(): { default: string; available: string[] } {
+  models(): ModelSet {
     const available = mapModelNames();
     return {
       default: DEFAULT_MODEL,
       // Ensure the default is listed even if the map is somehow missing it.
       available: available.includes(DEFAULT_MODEL) ? available : [DEFAULT_MODEL, ...available],
+      models: mapProvenance(),
     };
   }
 

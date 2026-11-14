@@ -16,7 +16,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CliUsageError, isErrorVerdict, type CallResult, type ErrorVerdict } from "../core/ProviderClient.ts";
-import { MistralClient, MISTRAL_CHAT_URL, setMistralTransport } from "./MistralClient.ts";
+import { MistralClient, MISTRAL_CHAT_URL, setMistralTransport, validateCatalog } from "./MistralClient.ts";
 import { fetchTransport, type MistralTransport, type TransportRequest, type TransportResponse } from "./MistralTransport.ts";
 
 const FAKE_KEY = "test-key-DO-NOT-LEAK-7f3a9c";
@@ -138,6 +138,15 @@ describe("query surface (no network, no key)", () => {
     );
   });
 
+  test("models(): every available id carries its lineage and host", () => {
+    const m = client().models();
+    expect(Object.keys(m.models).sort()).toEqual([...m.available].sort());
+    expect(m.models["mistral-large-4"]).toEqual({ lineage: "mistral", host: "mistral" });
+    expect(m.models["zai-glm-5-3"]).toEqual({ lineage: "z.ai", host: "mistral" });
+    expect(m.models["zai-glm-5-3-flash"]).toEqual({ lineage: "z.ai", host: "mistral" });
+    expect(m.models["deepseek-v4-1-flash-1017"]).toEqual({ lineage: "deepseek", host: "mistral" });
+  });
+
   test("thinkingModes() for the default model: level, default high, low|medium|high", () => {
     expect(client().thinkingModes()).toEqual({ kind: "level", default: "high", available: ["low", "medium", "high"] });
   });
@@ -181,6 +190,48 @@ describe("query surface (no network, no key)", () => {
   });
 });
 
+describe("catalog validation (validateCatalog)", () => {
+  function catalogWith(model: Record<string, unknown>): Record<string, unknown> {
+    return {
+      default: "m",
+      models: {
+        m: {
+          lineage: "mistral",
+          host: "mistral",
+          context_tokens: 1000,
+          bundle_tokens: 900,
+          thinking: { kind: "none", default: "", available: [] },
+          ...model,
+        },
+      },
+    };
+  }
+
+  test("a well-formed catalog passes", () => {
+    expect(validateCatalog(catalogWith({}), "fixture").default).toBe("m");
+  });
+
+  for (const field of ["lineage", "host"]) {
+    test(`a model missing "${field}" throws, naming the model and the field`, () => {
+      const c = catalogWith({});
+      delete (c.models as Record<string, Record<string, unknown>>).m![field];
+      expect(() => validateCatalog(c, "fixture")).toThrow(new RegExp(`"m".*"${field}"`));
+    });
+
+    test(`an empty "${field}" throws`, () => {
+      expect(() => validateCatalog(catalogWith({ [field]: "" }), "fixture")).toThrow(field);
+    });
+
+    test(`a non-string "${field}" throws`, () => {
+      expect(() => validateCatalog(catalogWith({ [field]: 7 }), "fixture")).toThrow(field);
+    });
+  }
+
+  test("a default that names no model still throws (existing rule kept)", () => {
+    expect(() => validateCatalog({ ...catalogWith({}), default: "nope" }, "fixture")).toThrow("default");
+  });
+});
+
 describe("CLI query modes via dispatch (subprocess, no key in env)", () => {
   function run(...args: string[]): { code: number; stdout: string } {
     const env: Record<string, string> = { PATH: process.env.PATH ?? "", HOME: tmpHome, VENDOR_CLIENTS_HOME: tmpHome };
@@ -192,6 +243,21 @@ describe("CLI query modes via dispatch (subprocess, no key in env)", () => {
     const r = run("--list-models");
     expect(r.code).toBe(0);
     expect((JSON.parse(r.stdout) as { default: string }).default).toBe("mistral-large-4");
+  });
+
+  test("--list-models -> per-model lineage and host, available unchanged", () => {
+    const r = run("--list-models");
+    expect(r.code).toBe(0);
+    const out = JSON.parse(r.stdout) as { available: string[]; models: Record<string, { lineage: string; host: string }> };
+    expect(out.available).toContain("zai-glm-5-3");
+    expect(out.models["zai-glm-5-3"]).toEqual({ lineage: "z.ai", host: "mistral" });
+  });
+
+  test("--help -> each model shows its lineage and host", () => {
+    const r = run("--help");
+    expect(r.code).toBe(0);
+    expect(r.stdout).toMatch(/zai-glm-5-3\s+z\.ai weights, hosted by mistral/);
+    expect(r.stdout).toMatch(/mistral-large-4\s+mistral weights, hosted by mistral \(default\)/);
   });
 
   test("--list-thinking-modes --model zai-glm-5-3 -> exit 0 + that model's modes", () => {
